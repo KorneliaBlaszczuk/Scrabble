@@ -28,7 +28,7 @@ Uwaga: Opuszczenie przez wszystkich graczy dwu kolejek z rzędu kończy grę nie
 
 
 ### Dokładne zasady
-[](http://www.pfs.org.pl/reguly.php)
+[Polska Federacja SCRABBLE](http://www.pfs.org.pl/reguly.php)
 
 
 ## Mapowanie klawiszy
