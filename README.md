@@ -36,6 +36,23 @@ Uwaga: Opuszczenie przez wszystkich graczy dwu kolejek z rzędu kończy grę nie
 
 |   Klawisz  |       Akcja           |
 | ---------- | ---------------------- |
+| SPACE | Rozpoczęcie gry |
 |    ENTER   |    Zatwierdzenie słowa; przejście do kolejki bota    |
 |      R     |    Wymiana płytek    |
 |      S     |    Opuszczenie kolejki |
+| E | Wyjście z gry |
+
+### Klasy
+ - Board 
+ Zarządza planszą. Jest odpowiedzialna za sprawdzanie poprawności ruchów graczy, określaniu koordynatów danego słowa, za przechowywanie wszystkich słów znajdujących się na planszy. Zarządza również woreczkiem z literami możliwymi do użycia przez graczy.
+
+ - Tile
+ Klasa dziedziczy po wbudowanej klasie z modułu pygame (pygame.sprite.Sprite), która zarządza widocznymi obiektami gry. Posiada atrybuty: letter i position.
+
+ - Player
+ Zarządza graczem. Odpowiedzialna za przechowywanie informacji o liście słów, stojaka na płytki oraz imienia konkretnego gracza. Co więcej właśnie w niej obecna jest funkcja zwracająca ostateczny wynik danego gracza.
+
+ - Bot 
+ Jest klasą, która dziedziczy po Player. Oprócz funkcjonalności powyższej klasy, posiada ona też takie, które pozwalają na to, że bot jest pełnoprawnym graczem z własnymi decyzjami. Bot, tak jak gracz, może ułożyć nowe słowo, dodać do już istniejącego lub wymienić swój stojak z literami. 
+
+
