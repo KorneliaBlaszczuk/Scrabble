@@ -43,16 +43,28 @@ Uwaga: Opuszczenie przez wszystkich graczy dwu kolejek z rzędu kończy grę nie
 | E | Zakończenie rozgrywki |
 
 ### Klasy
- - Board 
-\n Zarządza planszą. Jest odpowiedzialna za sprawdzanie poprawności ruchów graczy, określaniu koordynatów danego słowa, za przechowywanie wszystkich słów znajdujących się na planszy. Zarządza również woreczkiem z literami możliwymi do użycia przez graczy.
+ - Board <br>
+Zarządza planszą. Jest odpowiedzialna za sprawdzanie poprawności ruchów graczy, określaniu koordynatów danego słowa, za przechowywanie wszystkich słów znajdujących się na planszy. Zarządza również woreczkiem z literami możliwymi do użycia przez graczy.
 
- - Tile
+ - Tile<br>
  Klasa dziedziczy po wbudowanej klasie z modułu pygame (pygame.sprite.Sprite), która zarządza widocznymi obiektami gry. Posiada atrybuty: letter i position.
 
- - Player
+ - Player<br>
  Zarządza graczem. Odpowiedzialna za przechowywanie informacji o liście słów, stojaka na płytki oraz imienia konkretnego gracza. Co więcej właśnie w niej obecna jest funkcja zwracająca ostateczny wynik danego gracza.
 
- - Bot 
+ - Bot <br>
  Jest klasą, która dziedziczy po Player. Oprócz funkcjonalności powyższej klasy, posiada ona też takie, które pozwalają na to, że bot jest pełnoprawnym graczem z własnymi decyzjami. Bot, tak jak gracz, może ułożyć nowe słowo, dodać do już istniejącego lub wymienić swój stojak z literami. 
 
+### Rozgrywka i przedstawienie aspektu wizualnego
+Po uruchomieniu programu gracz witany jest ekranem starowym, gdzie znajduje się informacja o twórcy. Następnie klikając przycisk SPACE przeniesiony zostaje do ekranu z polem na wpisanie imienia. W przypadku nie podania informacji, na ekranie końcowym wyświetli się imię 'Player'.
+<br><br>
+Następnie rozpoczyna się rozgrywka. Pierwsze słowo musi znaleźć się na polu o indeksach (7,7), co zostało oznaczone wyróżniającym się kolorem. Jeśli gracz nie wykona ruchu, spróbuje go zrobić bot.
+<br><br>
+Poniżej stojaka z literami gracza wyświetla się aktualna runda.
+<br><br>
+Podczas rozgrywki gracz ma trzy możliwości wykorzystania swojej kolejki: opuszczenie jej, wymiana stojaka z literami lub wyłożenie liter na plansze. 
+<br><br>
+Gra kończy się w momencie, gdy gracz opuści swoją kolejkę dwa razy, stojak jednego z graczy będzie pusty lub po naciśnięciu przycisku E. 
+<br><br>
+Po zakończeniu rozgrywki wyświetli się ekran końcowy. Przedstawiony na nim jest wynik punktowy zarówno gracza, jak i bota. 
 
