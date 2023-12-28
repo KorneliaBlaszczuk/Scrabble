@@ -37,14 +37,14 @@ Uwaga: Opuszczenie przez wszystkich graczy dwu kolejek z rzędu kończy grę nie
 |   Klawisz  |       Akcja           |
 | ---------- | ---------------------- |
 | SPACE | Rozpoczęcie gry |
-|    ENTER   |    Zatwierdzenie słowa; przejście do kolejki bota    |
+|    ENTER   |    Zatwierdzenie słowa; przejście do kolejki bota  /   Zatwierdzenie imienia  |
 |      R     |    Wymiana płytek    |
 |      S     |    Opuszczenie kolejki |
-| E | Wyjście z gry |
+| E | Zakończenie rozgrywki |
 
 ### Klasy
  - Board 
- Zarządza planszą. Jest odpowiedzialna za sprawdzanie poprawności ruchów graczy, określaniu koordynatów danego słowa, za przechowywanie wszystkich słów znajdujących się na planszy. Zarządza również woreczkiem z literami możliwymi do użycia przez graczy.
+\n Zarządza planszą. Jest odpowiedzialna za sprawdzanie poprawności ruchów graczy, określaniu koordynatów danego słowa, za przechowywanie wszystkich słów znajdujących się na planszy. Zarządza również woreczkiem z literami możliwymi do użycia przez graczy.
 
  - Tile
  Klasa dziedziczy po wbudowanej klasie z modułu pygame (pygame.sprite.Sprite), która zarządza widocznymi obiektami gry. Posiada atrybuty: letter i position.
