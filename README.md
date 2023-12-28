@@ -42,7 +42,7 @@ Uwaga: Opuszczenie przez wszystkich graczy dwu kolejek z rzędu kończy grę nie
 |      S     |    Opuszczenie kolejki |
 | E | Zakończenie rozgrywki |
 
-### Klasy
+## Klasy
  - Board <br>
 Zarządza planszą. Jest odpowiedzialna za sprawdzanie poprawności ruchów graczy, określaniu koordynatów danego słowa, za przechowywanie wszystkich słów znajdujących się na planszy. Zarządza również woreczkiem z literami możliwymi do użycia przez graczy.
 
@@ -55,7 +55,7 @@ Zarządza planszą. Jest odpowiedzialna za sprawdzanie poprawności ruchów grac
  - Bot <br>
  Jest klasą, która dziedziczy po Player. Oprócz funkcjonalności powyższej klasy, posiada ona też takie, które pozwalają na to, że bot jest pełnoprawnym graczem z własnymi decyzjami. Bot, tak jak gracz, może ułożyć nowe słowo, dodać do już istniejącego lub wymienić swój stojak z literami. 
 
-### Rozgrywka i przedstawienie aspektu wizualnego
+## Rozgrywka i przedstawienie aspektu wizualnego
 Po uruchomieniu programu gracz witany jest ekranem starowym, gdzie znajduje się informacja o twórcy. Następnie klikając przycisk SPACE przeniesiony zostaje do ekranu z polem na wpisanie imienia. W przypadku nie podania informacji, na ekranie końcowym wyświetli się imię 'Player'.
 <br><br>
 Następnie rozpoczyna się rozgrywka. Pierwsze słowo musi znaleźć się na polu o indeksach (7,7), co zostało oznaczone wyróżniającym się kolorem. Jeśli gracz nie wykona ruchu, spróbuje go zrobić bot.
@@ -66,5 +66,12 @@ Podczas rozgrywki gracz ma trzy możliwości wykorzystania swojej kolejki: opusz
 <br><br>
 Gra kończy się w momencie, gdy gracz opuści swoją kolejkę dwa razy, stojak jednego z graczy będzie pusty lub po naciśnięciu przycisku E. 
 <br><br>
-Po zakończeniu rozgrywki wyświetli się ekran końcowy. Przedstawiony na nim jest wynik punktowy zarówno gracza, jak i bota. 
+Po zakończeniu rozgrywki wyświetli się ekran końcowy. Przedstawiony na nim jest wynik punktowy zarówno gracza, jak i bota. Na dole ekrany zostaje wyświetlony zwycięzca.
+
+## Bot
+Bot jest swoistym programem, który symuluje gracza. Jego ruch jest losowy. Najpierw losuje on to, czy położy nowe słowo, lub czy doda litery do już istniejącego. Następnie w przypadku tworzenia nowego słowa losuje on jego kierunek. Następuje losowanie rzędu i kolumny, po których rozpoczynamy iteracje, szukając odpowiedniej i zgodnej z warunkami pozycji słowa.
+<br>
+W przypadku już istniejącego słowa, bot szuka możliwości dodania liter do jednego ze słów na planszy. Następnie w kolejnej funkcji sprawdza możliwość dodania liter do danego słowa. 
+<br><br>
+W przypadku dodania nowego słowa bot bierze pod uwagę puste literki.
 
