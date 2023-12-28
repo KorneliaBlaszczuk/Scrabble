@@ -78,7 +78,7 @@ W przypadku dodania nowego słowa bot bierze pod uwagę puste literki.
 Bot próbuje ułożyć akceptowalne słowo maksymalnie 4 razy, po czym wymienia stojak z literami.
 
 ## Użyte moduły i czcionki
-# Moduły
+### Moduły
 - [RE](https://docs.python.org/3/library/re.html?highlight=re#module-re) <br>
 Użyty w konstrukcji bota do znajdowania nowych słów.
 - [Random](https://docs.python.org/3/library/random.html?highlight=random#module-random) <br>
@@ -86,7 +86,7 @@ Moduł wykorzystany do stworzenia bota z daną losowością.
 - [PyGame](https://www.pygame.org/docs/ref/pygame.html) <br>
 Użyty do wykonania apektu wizualnego gry.  
 
-# Czcionki 
+### Czcionki 
 W grze zostały użyte dwie czcionki GoogleFonts:
 - [Rubik Doodle Shadow](https://fonts.google.com/specimen/Rubik+Doodle+Shadow?query=rubik)
 - [Rubik](https://fonts.google.com/specimen/Rubik?query=rubik)
