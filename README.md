@@ -74,4 +74,6 @@ Bot jest swoistym programem, który symuluje gracza. Jego ruch jest losowy. Najp
 W przypadku już istniejącego słowa, bot szuka możliwości dodania liter do jednego ze słów na planszy. Następnie w kolejnej funkcji sprawdza możliwość dodania liter do danego słowa. 
 <br><br>
 W przypadku dodania nowego słowa bot bierze pod uwagę puste literki.
+<br><br>
+Bot próbuje ułożyć akceptowalne słowo maksymalnie 4 razy, po czym wymienia stojak z literami.
 
