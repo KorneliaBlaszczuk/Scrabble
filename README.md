@@ -1,5 +1,13 @@
 # Projekt PIPR - Gra SCRABBLE
 
+## Temat projektu
+Przygotuj program który pozwoli grać w grę scrabble.
+<br><br>
+Gra polega na układaniu słów z wylosowanych klocków z literkami i dokładaniu ich do planszy tak żeby zdobyć jak najwięcej punktów. Słowa dokładać można tylko w jednym kierunku (pion lub poziom), a po dołożeniu nowego słowa wszystkie zbitki liter na planszy musza mieć sens (Zarówno w pionie jak i w poziomie).
+<br><br>
+W wersji piprowej proponuję uproszczenie gry do maksymalnie 5-literowych słów (w wersji z botem, żeby ułatwić przeszukiwanie słownika) i zrezygnowanie z pól z dodatkowymi premiami. Do rozwiązania zadania (stworzenia bota) należy wykorzystać słownik np: https://sjp.pl/slownik/growy/
+<br><br>
+Dokładne reguły, punktacja i liczba płytek z daną literą są dostępne na stronie: http://www.pfs.org.pl/reguly.php
 
 ## Wprowadzenie
 SCRABBLE to gra słowna. Polega na układaniu na planszy powiązanych ze sobą słów przy użyciu płytek z literami o różnej wartości - przypomina to budowanie krzyżówki. Celem gry jest uzyskanie jak najwyższego wyniku. Każdy gracz stara się uzyskać jak najwięcej punktów układając słowa w taki sposób, by wykorzystać wartość liter i premiowane pola na planszy. Zależnie od umiejętności graczy, suma uzyskanych w grze punktów może osiągnąć od 400 do 800, albo nawet więcej.
