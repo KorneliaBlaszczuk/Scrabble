@@ -22,11 +22,6 @@ from player import Player
 from bot import Bot
 
 
-"""
-Make game class
-"""
-
-
 class ScrabbleGame:
     def __init__(self):
         pygame.init()
