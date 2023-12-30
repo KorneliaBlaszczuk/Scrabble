@@ -1,9 +1,10 @@
 import pygame
 import sys
-from game import game, name_win, start_win
+from game import ScrabbleGame
 
 
 def main():
+    game = ScrabbleGame()
     clock = pygame.time.Clock()
     run = True
     while run:
@@ -14,11 +15,11 @@ def main():
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
-                    player_name = name_win()
+                    player_name = game.name_win()
                     name = player_name if player_name != "" else "Player"
-                    run = game(name)
+                    run = game.game(name)
         if run:
-            start_win()
+            game.start_win()
     pygame.quit()
     sys.exit()
 
