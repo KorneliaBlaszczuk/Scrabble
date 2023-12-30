@@ -467,26 +467,3 @@ def end(player_name, player_score, bot_score):
             if event.type == pygame.QUIT or event.type == pygame.KEYDOWN:
                 pygame.quit()
                 sys.exit()
-
-
-def main():
-    clock = pygame.time.Clock()
-    run = True
-    while run:
-        clock.tick(60)
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                run = False
-
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE:
-                    player_name = name_win()
-                    name = player_name if player_name != "" else "Player"
-                    run = game(name)
-        if run:
-            start_win()
-    pygame.quit()
-    sys.exit()
-
-
-main()
