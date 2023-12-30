@@ -23,6 +23,11 @@ from bot import Bot
 
 
 class ScrabbleGame:
+    """
+    Class ScrabbleGame
+    Manages game, including game windows
+    """
+
     def __init__(self):
         pygame.init()
         self.WIN = pygame.display.set_mode((WIDTH, HEIGHT + 2 * EXTRA_SPACE))
