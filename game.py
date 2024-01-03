@@ -332,6 +332,7 @@ class ScrabbleGame:
                             if len(board.current_word.values()) < 2:
                                 for pos in board.current_word:
                                     if board.alone_tile(pos):
+                                        print('removing here')
                                         board.not_valid_action(
                                             board_sprite, player
                                         )
@@ -346,6 +347,8 @@ class ScrabbleGame:
                                     ):
                                     pass
                                 else:
+                                    print('row_key itd')
+                                    print(board.current_word)
                                     board.not_valid_action(
                                             board_sprite,
                                             player,
@@ -382,7 +385,7 @@ class ScrabbleGame:
                                     if prev_word in board.word_list:
                                         board.word_list.remove(prev_word)
 
-                        current_word = {}
+                        board.current_word_empty()
 
                         print(board.word_list)
 
