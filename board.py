@@ -37,6 +37,7 @@ class Board:
         self.board = []
         self._word_list = []
         self.letters_bag = letters.copy()
+        self.current_word = {}
 
     @property
     def word_list(self):
@@ -45,6 +46,37 @@ class Board:
     @property
     def all_letters(self):
         return self.letters_bag.keys()
+
+    def sort_current_word(self):
+        row_key = [item[0] for item in self.current_word.keys()]
+        col_key = [item[1] for item in self.current_word.keys()]
+        if all(x == row_key[0] for x in row_key):
+            sorted_word = dict(
+                sorted(
+                self.current_word.items(),
+                key=lambda item: item[0][1],
+                )
+            )
+            self.current_word = sorted_word
+        elif all(y == col_key[0] for y in col_key):
+            sorted_word = dict(
+                sorted(
+                self.current_word.items(),
+                key=lambda item: item[0][0],
+                )
+            )
+            self.current_word = sorted_word
+        else:
+            return False
+        return self.current_word
+
+    def current_word_update(self, coord, letter):
+        self.current_word[coord] = letter
+        return self.current_word
+
+    def current_word_empty(self):
+        self.current_word.clear()
+        return self.current_word
 
     def create_board(self):
         """
@@ -57,20 +89,20 @@ class Board:
                 self.board[row].append("")
         return self.board
 
-    def update_board(self, current_word):
+    def update_board(self):
         """
         Adds current word (letters) to board
         """
-        for pos in current_word:
+        for pos in self.current_word:
             row, col = pos
-            self.board[row][col] = current_word[pos]
+            self.board[row][col] = self.current_word[pos]
         return self.board
 
-    def remove_from_board(self, current_word):
+    def remove_from_board(self):
         """
         Removes current word from board
         """
-        for pos in current_word:
+        for pos in self.current_word:
             row, col = pos
             self.board[row][col] = ""
         return self.board
@@ -168,36 +200,49 @@ class Board:
         col = x // (SQUARE_SIZE)
         return row, col
 
-    def valid_added_word(self, current_word):
+    def space_count(self, word_coord):
+        count = 0
+        in_group = False
+
+        for i in range(len(word_coord) - 1):
+            if word_coord[i] + 1 == word_coord[i + 1]:
+                in_group = True
+            elif in_group:
+                count += 1
+                in_group = False
+
+        return count
+
+    def valid_added_word(self, row_key, col_key):
         """
         Checks if the placement of added word
         is correct
         """
-        word_coord = self.addword(current_word)
-        print(word_coord)
-        for i in range(len(word_coord[1]) - 1):
-            if word_coord[1][i] + 1 != word_coord[1][i + 1]:
-                return False
-        if type(word_coord[0][0]) is tuple:  # checks which argument is a tuple
-            coord = word_coord[0][0]
-            col = word_coord[0][1]
-            if all(element != 0 for element in coord):
-                # checks if there is a empty space
-                if all(self.board[row][col] != "" for row in range(coord[0], coord[1])):
-                    return True
-                else:
-                    return False
+        space_coord = self.addword()
+        position = self.word_info_position()
+        coordinates = row_key if position == "vertical" else col_key
+        if self.space_count(coordinates) == 1:
+            if position == "vertical" and all(
+                self.board[row][space_coord[1]] != ""
+                for row in range(space_coord[0][0], space_coord[0][1])
+            ):
+                return True
+            elif position == "horizontal" and all(
+                self.board[space_coord[0]][col] != ""
+                for col in range(space_coord[1][0], space_coord[1][1])
+            ):
+                return True
+        elif self.space_count(coordinates) == 0 and not all(
+            self.not_touching(
+                row_key[0], col_key[0], position, "".join(self.current_word.values())
+            )
+        ):
+            return True
         else:
-            coord = word_coord[0][1]
-            row = word_coord[0][0]
-            if all(element != 0 for element in coord):
-                if all(self.board[row][col] != "" for col in range(coord[0], coord[1])):
-                    return True
-                else:
-                    return False
-        return True
+            return False
 
-    def addword(self, current_word):
+    def addword(self):
+        # będzie return prefix and sufix
         """
         Function finds the empty space between
         put letters and returns start, end and
@@ -208,8 +253,8 @@ class Board:
         suffix = []
         word_coord = []
         start = 0
-        row = [item[0] for item in current_word.keys()]
-        col = [item[1] for item in current_word.keys()]
+        row = [item[0] for item in self.current_word.keys()]
+        col = [item[1] for item in self.current_word.keys()]
         if all(x == col[0] for x in col):
             const = col[0]
             count = row[0]
@@ -236,21 +281,21 @@ class Board:
                     count += 1
             end = suffix[0] if suffix else 0
             word_coord = [const, (start, end)]
-        return word_coord, suffix
+        return word_coord
 
-    def not_valid(self, board_sprite, current_word, player):
+    def not_valid_action(self, board_sprite, player):
         """
         Action called in a situation when the wrong move was made by player
         """
         for tile in board_sprite:
-            for pos in current_word:
+            for pos in self.current_word:
                 letter_x, letter_y = self.row_col_to_coord(pos[0], pos[1])
-                if (tile.letter() == current_word[pos]) and (
+                if (tile.letter() == self.current_word[pos]) and (
                     tile.position() == (letter_x, letter_y)
                 ):
                     board_sprite.remove(tile)
                     pygame.display.flip()
-                player.reinstate_rack(current_word[pos])
+                player.reinstate_rack(self.current_word[pos])
 
     def alone_tile(self, pos):
         """
@@ -402,6 +447,12 @@ class Board:
         ]
         return words
 
+    def letter_in_board(self):
+        letters = [
+            word for word in (self.check_row() + self.check_col()) if len(word) == 1
+        ]
+        return letters
+
     def word_authentication(self, word, words):
         """
         Checks if the word is valid (in the list of authentic words).
@@ -470,17 +521,21 @@ class Board:
                     word_amount += 1
         return self.word_list
 
-    def validation(self, board_sprite, words, current_word, player):
+    def validation(self, board_sprite, words, player):
         """
         Manages all the validation proces of word made by player
         """
         if self.word_checking(words):
             self.word_lists_adding(player)
-            print("valid")
         else:
-            print("invalid")
-            self.not_valid(board_sprite, current_word, player)
-            self.remove_from_board(current_word)
+            self.not_valid_action(board_sprite, player)
+            self.remove_from_board()
+
+    def word_info_position(self):
+        # after we sort current word
+        row_key = [item[0] for item in self.current_word.keys()]
+        position = "horizontal" if all(x == row_key[0] for x in row_key) else "vertical"
+        return position
 
     def exist(self, word):
         """
@@ -516,3 +571,24 @@ class Board:
                 else:
                     find_word.clear()
         return False
+
+    def remove_added_to(self):
+        if self.word_list and len(self.current_word) > 1:
+            if len(self.word_list[-1]) > len(self.current_word.values()):
+                previous_coord = self.addword()
+                prev_word = ""
+                if self.word_info_position() == "vertical":
+                    coords = previous_coord[0]
+                    col = previous_coord[1]
+                    print(coords, col)
+                    for row in range(coords[0], coords[1]):
+                        prev_word += self.board[row][col]
+                else:
+                    coords = previous_coord[1]
+                    row = previous_coord[0]
+                    print(coords)
+                    for col in range(coords[0], coords[1]):
+                        prev_word += self.board[row][col]
+
+                    if prev_word in self.word_list:
+                        self.word_list.remove(prev_word)
