@@ -25,7 +25,7 @@ from bot import Bot
 class ScrabbleGame:
     """
     Class ScrabbleGame
-    Manages game, including game windows
+    Manages game, including game windows and clicks
     """
 
     def __init__(self):
@@ -35,8 +35,12 @@ class ScrabbleGame:
         pygame.font.init()
 
     def start_win(self):
+        """
+        Function that handles starting window of a game
+        """
         self.WIN.fill(CENTRAL_COLOR)
 
+        # data including texts that are shown on the board
         text_data = [
             {
                 "text": "SCRABBLE GAME",
@@ -55,6 +59,7 @@ class ScrabbleGame:
             },
         ]
 
+        # printing text
         for e, data in enumerate(text_data):
             font_loc = "fonts/{type}.ttf"
             font_type = font_loc.format(
@@ -68,6 +73,10 @@ class ScrabbleGame:
         pygame.display.update()
 
     def name_win(self):
+        """
+        Window in which the player can enter their name.
+        In case of not doing it, the automatic name is 'Player'.
+        """
         self.WIN.fill(CENTRAL_COLOR)
 
         player_name = ""
@@ -82,6 +91,7 @@ class ScrabbleGame:
             rect_height,
         )
 
+        # data that containes texts shown on the screen
         text_data = [
             {
                 "text": "Please, enter your name (max 10 characters).",
@@ -97,7 +107,8 @@ class ScrabbleGame:
             },
         ]
 
-        for e, data in enumerate(text_data):
+        # printing texts on screen
+        for data in text_data:
             font = pygame.font.Font("fonts/rubikname.ttf", SQUARE_SIZE // 2)
             text = font.render(data["text"], True, WHITE)
             text_rect = text.get_rect(center=data["coord"])
@@ -106,6 +117,10 @@ class ScrabbleGame:
         active = False
         run = True
 
+        """
+        Part of the code that manages filling the name
+        field.
+        """
         while run:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -118,6 +133,7 @@ class ScrabbleGame:
                     else:
                         active = False
 
+                # player can only enter their name if the square is active
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_BACKSPACE and active:
                         user_text = user_text[:-1]
@@ -129,10 +145,12 @@ class ScrabbleGame:
                     elif active:
                         user_text += event.unicode
 
+            # if the player write a name containing 10 symbols, the game starts
             if len(user_text) == 10:
                 player_name = user_text
                 run = False
 
+            # if clicked the square is grey, else white
             color = "grey" if active else "white"
 
             pygame.draw.rect(self.WIN, color, input_rect)
@@ -148,17 +166,25 @@ class ScrabbleGame:
         return player_name
 
     def game(self, player_name):
+        """
+        Function that handles main game
+        """
         self.WIN.fill(DUN)
-        """Zmienna definiująca, czy gra jest aktywna,
-        działa w danym momencie"""
+
+        # Variable that defines if the game is active
         run = True
-        """Definujemy zegar, który kontroluje nam liczbę FPS"""
+
+        # Defining clock (FPS)
         clock = pygame.time.Clock()
+
+        # Rack and board sprite that store tiles
         board_sprite = pygame.sprite.Group()
         rack_sprite = pygame.sprite.Group()
 
-        current_next_pos = []
+        # list that stores current mouse clicks
+        current_click = []
 
+        # classes used in game
         player = Player(player_name)
         bot = Bot()
         board = Board()
@@ -170,11 +196,12 @@ class ScrabbleGame:
 
         bot.updating_rack(board)
 
-        current_word = {}
 
+        # score of a player and bot
         player_score = 0
         bot_score = 0
 
+        # Skip and round counter
         skip_count = 0
         round = 1
 
@@ -183,23 +210,21 @@ class ScrabbleGame:
             words = content.split()
 
         while run:
-            """Częstotliwość odświeżania"""
             clock.tick(60)
-            """
-            Sprawdza wystąpienie danych zdarzeń (eventów) w danym momencie
-            """
 
             for event in pygame.event.get():
-                """Zamyka okno interaktywne"""
+                # Closes interactive window
                 if event.type == pygame.QUIT:
                     run = False
 
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_e:
+                        # Aborts game running; shows score
                         self.end(player_name, player_score, bot_score)
                         run = False
 
                     if event.key == pygame.K_r:
+                        # Replaces rack, only if it wasn't used (bot turn)
                         if player.is_rack_used() is False:
                             rack_sprite.empty()
                             player.replace_rack(board)
@@ -210,8 +235,9 @@ class ScrabbleGame:
 
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_s:
+                        # Skips round; if count == 2: end of the game
                         skip_count += 1
-                        board.not_valid(board_sprite, current_word, player)
+                        board.not_valid_action(board_sprite, player)
                         bot.bot_turn(board, board_sprite, words)
                         bot.updating_rack(board)
                         board.draw_rack(player.rack(), rack_sprite)
@@ -223,66 +249,58 @@ class ScrabbleGame:
                     else:
                         skip_count = 0
 
-                """Czy nacisneliśmy przycisk myszki"""
+                # Checks if we pushed mousebuttons, manages moving tiles
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     position = pygame.mouse.get_pos()
                     x, y = position
                     row, col = board.coord_to_row_col(position)
-                    current_next_pos.append((row, col))
-                    count = len(current_next_pos)
+                    current_click.append((row, col))
+                    count = len(current_click)
                     if (
-                        (count == 1 and ((current_next_pos[0][0] != 16)))
-                        or (count == 1 and (current_next_pos[0][1] > 10))
-                        or (count == 1 and (current_next_pos[0][1] < 4))
+                        (count == 1 and ((current_click[0][0] != 16)))
+                        or (count == 1 and (current_click[0][1] > 10))
+                        or (count == 1 and (current_click[0][1] < 4))
                         or (
                             count == 1
-                            and (player.rack()[current_next_pos[0][1] - 4] == "")
+                            and (player.rack()[current_click[0][1] - 4] == "")
                         )
-                        or (count == 2 and (current_next_pos[1][0] > 14))
+                        or (count == 2 and (current_click[1][0] > 14))
                         or (
                             count == 2
                             and (
                                 board.colid(
                                     board_sprite,
-                                    current_next_pos,
+                                    current_click,
                                 )
                             )
                         )
                     ):
-                        current_next_pos.clear()
-                        count = 0
-                    if len(current_next_pos) == 2:
-                        rack_row, rack_col = current_next_pos[0]
-                        letter_row, letter_col = current_next_pos[1]
+                        current_click.clear()
+                    if len(current_click) == 2:
+                        rack_row, rack_col = current_click[0]
+                        letter_row, letter_col = current_click[1]
                         letter_x, letter_y = board.row_col_to_coord(
                             letter_row,
                             letter_col,
                         )
-                        rack_x, rack_y = board.row_col_to_coord(
-                            rack_row,
-                            rack_col,
-                        )
 
+                        # If the player clicks on an empty space in rack
                         if player.rack()[rack_col - 4] == "":
-                            current_next_pos.clear()
+                            current_click.clear()
                             break
-                        else:
-                            pass
-                        # kiedy gracz kliknie na plansze jako pierwsze
 
+                        # Gets info about letter tile; moves it
                         letter_title = Tile(
                             player.rack()[rack_col - 4], (letter_x, letter_y)
                         )
 
                         letter_row, letter_col = board.coord_to_row_col((x, y))
 
-                        current_word[(letter_row, letter_col)] = letter_title.letter()
+                        board.current_word_update((letter_row, letter_col), letter_title.letter())
                         rack_sprite.empty()
                         board_sprite.add(letter_title)
 
-                        """
-                        Aktualizacja stojaka
-                        """
+                        # Rack updating
 
                         player.rack()[rack_col - 4] = ""
 
@@ -298,102 +316,71 @@ class ScrabbleGame:
                                 x += SQUARE_SIZE
                         x = extra_space_x
                         y = extra_space_y + EXTRA_SPACE // 2
-                        current_next_pos.clear()
+                        current_click.clear()
 
-                """Kiedy nacisneliśmy ENTER słowo dodawane jest do listy,
-                a w stojaku uzupełniane są puste pola"""
+                # If enter the word is checked and then bot turn
                 if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_RETURN and current_word:
+                    if event.key == pygame.K_RETURN and board.current_word:
                         if len(board.word_list) == 0:
-                            if any(key == (7, 7) for key in current_word.keys()):
-                                pass
-                            else:
-                                board.not_valid(
+                            if not any(key == (7, 7) for key in board.current_word.keys()):
+                                board.not_valid_action(
                                     board_sprite,
-                                    current_word,
                                     player,
                                 )
-                                current_word = {}
+                                board.current_word_empty()
                         else:
-                            if len(current_word.values()) < 2:
-                                for pos in current_word:
+                            if len(board.current_word.values()) < 2:
+                                for pos in board.current_word:
                                     if board.alone_tile(pos):
-                                        board.not_valid(
-                                            board_sprite, current_word, player
+                                        board.not_valid_action(
+                                            board_sprite, player
                                         )
-                                        current_word = {}
+                                        board.current_word_empty()
                                     else:
                                         continue
                             else:
-                                row_key = [item[0] for item in current_word.keys()]
-                                col_key = [item[1] for item in current_word.keys()]
-                                if all(x == row_key[0] for x in row_key):
-                                    sorted_word = dict(
-                                        sorted(
-                                            current_word.items(),
-                                            key=lambda item: item[0][1],
-                                        )
-                                    )
-                                    print(board.valid_added_word(sorted_word))
-                                    if not board.valid_added_word(sorted_word):
-                                        board.not_valid(
-                                            board_sprite,
-                                            current_word,
-                                            player,
-                                        )
-                                        current_word = {}
-                                    else:
-                                        current_word = sorted_word
-                                elif all(y == col_key[0] for y in col_key):
-                                    sorted_word = dict(
-                                        sorted(
-                                            current_word.items(),
-                                            key=lambda item: item[0][0],
-                                        )
-                                    )
-                                    print(board.valid_added_word(sorted_word))
-                                    if not board.valid_added_word(sorted_word):
-                                        board.not_valid(
-                                            board_sprite,
-                                            current_word,
-                                            player,
-                                        )
-                                        current_word = {}
-                                    else:
-                                        current_word = sorted_word
+                                row_key = [item[0] for item in board.current_word.keys()]
+                                col_key = [item[1] for item in board.current_word.keys()]
+                                if board.sort_current_word() and board.valid_added_word(
+                                        row_key, col_key
+                                    ):
+                                    pass
                                 else:
-                                    print("none placement")
-                                    board.not_valid(
-                                        board_sprite,
-                                        current_word,
-                                        player,
-                                    )
-                                    current_word = {}
-                        board.update_board(current_word)
+                                    board.not_valid_action(
+                                            board_sprite,
+                                            player,
+                                        )
+                                    board.current_word_empty()
+
+                        print(board.current_word)
+                        board.update_board()
                         board.validation(
                             board_sprite,
                             words,
-                            current_word,
                             player,
                         )
-                        print(player.rack())
-                        if board.word_list and len(current_word) > 1:
-                            if len(board.word_list[-1]) > len(current_word.values()):
-                                previous_coord = board.addword(current_word)
+
+                        print(board.word_list)
+                        if board.word_list and len(board.current_word) > 1:
+                            if len(board.word_list[-1]) > len(board.current_word.values()):
+                                previous_coord = board.addword()
                                 prev_word = ""
-                                if type(previous_coord[0][0]) is tuple:
-                                    coords = previous_coord[0][0]
-                                    col = previous_coord[0][1]
+                                print(board.word_info_position())
+                                if board.word_info_position() == "vertical":
+                                    coords = previous_coord[0]
+                                    col = previous_coord[1]
+                                    print(coords, col)
                                     for row in range(coords[0], coords[1]):
                                         prev_word += board.board[row][col]
                                 else:
-                                    coords = previous_coord[0][1]
-                                    row = previous_coord[0][0]
+                                    coords = previous_coord[1]
+                                    row = previous_coord[0]
+                                    print(coords)
                                     for col in range(coords[0], coords[1]):
                                         prev_word += board.board[row][col]
 
-                                if prev_word in board.word_list:
-                                    board.word_list.remove(prev_word)
+                                    if prev_word in board.word_list:
+                                        board.word_list.remove(prev_word)
 
                         current_word = {}
 
@@ -413,6 +400,8 @@ class ScrabbleGame:
 
                         else:
                             continue
+
+                    print(board.word_list)
 
             pygame.draw.rect(
                 self.WIN,
@@ -490,3 +479,9 @@ class ScrabbleGame:
                 if event.type == pygame.QUIT or event.type == pygame.KEYDOWN:
                     pygame.quit()
                     sys.exit()
+
+    def click_handling(self):
+        pass
+
+    def update_on_screen(self):
+        pass
