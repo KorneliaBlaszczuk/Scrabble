@@ -33,6 +33,10 @@ class ScrabbleGame:
         self.WIN = pygame.display.set_mode((WIDTH, HEIGHT + 2 * EXTRA_SPACE))
         pygame.display.set_caption("SCRABBLE")
         pygame.font.init()
+        self.current_click = []
+
+        self.player_score = 0
+        self.bot_score = 0
 
     def start_win(self):
         """
@@ -181,9 +185,6 @@ class ScrabbleGame:
         board_sprite = pygame.sprite.Group()
         rack_sprite = pygame.sprite.Group()
 
-        # list that stores current mouse clicks
-        current_click = []
-
         # classes used in game
         player = Player(player_name)
         bot = Bot()
@@ -195,7 +196,6 @@ class ScrabbleGame:
         board.draw_rack(player.rack(), rack_sprite)
 
         bot.updating_rack(board)
-
 
         # score of a player and bot
         player_score = 0
@@ -254,31 +254,12 @@ class ScrabbleGame:
                     position = pygame.mouse.get_pos()
                     x, y = position
                     row, col = board.coord_to_row_col(position)
-                    current_click.append((row, col))
-                    count = len(current_click)
-                    if (
-                        (count == 1 and ((current_click[0][0] != 16)))
-                        or (count == 1 and (current_click[0][1] > 10))
-                        or (count == 1 and (current_click[0][1] < 4))
-                        or (
-                            count == 1
-                            and (player.rack()[current_click[0][1] - 4] == "")
-                        )
-                        or (count == 2 and (current_click[1][0] > 14))
-                        or (
-                            count == 2
-                            and (
-                                board.colid(
-                                    board_sprite,
-                                    current_click,
-                                )
-                            )
-                        )
-                    ):
-                        current_click.clear()
-                    if len(current_click) == 2:
-                        rack_row, rack_col = current_click[0]
-                        letter_row, letter_col = current_click[1]
+                    self.current_click.append((row, col))
+                    self.click_handling(player, board, board_sprite)
+
+                    if len(self.current_click) == 2:
+                        rack_row, rack_col = self.current_click[0]
+                        letter_row, letter_col = self.current_click[1]
                         letter_x, letter_y = board.row_col_to_coord(
                             letter_row,
                             letter_col,
@@ -286,7 +267,7 @@ class ScrabbleGame:
 
                         # If the player clicks on an empty space in rack
                         if player.rack()[rack_col - 4] == "":
-                            current_click.clear()
+                            self.current_click.clear()
                             break
 
                         # Gets info about letter tile; moves it
@@ -296,7 +277,9 @@ class ScrabbleGame:
 
                         letter_row, letter_col = board.coord_to_row_col((x, y))
 
-                        board.current_word_update((letter_row, letter_col), letter_title.letter())
+                        board.current_word_update(
+                            (letter_row, letter_col), letter_title.letter()
+                        )
                         rack_sprite.empty()
                         board_sprite.add(letter_title)
 
@@ -316,46 +299,41 @@ class ScrabbleGame:
                                 x += SQUARE_SIZE
                         x = extra_space_x
                         y = extra_space_y + EXTRA_SPACE // 2
-                        current_click.clear()
+                        self.current_click.clear()
 
                 # If enter the word is checked and then bot turn
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_RETURN and board.current_word:
-                        if len(board.word_list) == 0:
-                            if not any(key == (7, 7) for key in board.current_word.keys()):
+                        if len(board.word_list) == 0 and not any(
+                            key == (7, 7) for key in board.current_word.keys()
+                        ):
+                            board.not_valid_action(
+                                board_sprite,
+                                player,
+                            )
+                        elif len(board.word_list) == 0:
+                            continue
+                        elif (
+                            len(board.word_list) != 0
+                            and len(board.current_word.values()) < 2
+                        ):
+                            for pos in board.current_word:
+                                if board.alone_tile(pos):
+                                    board.not_valid_action(board_sprite, player)
+                                else:
+                                    continue
+                        else:
+                            row_key = [item[0] for item in board.current_word.keys()]
+                            col_key = [item[1] for item in board.current_word.keys()]
+                            if board.sort_current_word() and board.valid_added_word(
+                                row_key, col_key
+                            ):
+                                pass
+                            else:
                                 board.not_valid_action(
                                     board_sprite,
                                     player,
                                 )
-                                board.current_word_empty()
-                        else:
-                            if len(board.current_word.values()) < 2:
-                                for pos in board.current_word:
-                                    if board.alone_tile(pos):
-                                        print('removing here')
-                                        board.not_valid_action(
-                                            board_sprite, player
-                                        )
-                                        board.current_word_empty()
-                                    else:
-                                        continue
-                            else:
-                                row_key = [item[0] for item in board.current_word.keys()]
-                                col_key = [item[1] for item in board.current_word.keys()]
-                                if board.sort_current_word() and board.valid_added_word(
-                                        row_key, col_key
-                                    ):
-                                    pass
-                                else:
-                                    print('row_key itd')
-                                    print(board.current_word)
-                                    board.not_valid_action(
-                                            board_sprite,
-                                            player,
-                                        )
-                                    board.current_word_empty()
-
-                        print(board.current_word)
                         board.update_board()
                         board.validation(
                             board_sprite,
@@ -363,31 +341,9 @@ class ScrabbleGame:
                             player,
                         )
 
-                        print(board.word_list)
-                        if board.word_list and len(board.current_word) > 1:
-                            if len(board.word_list[-1]) > len(board.current_word.values()):
-                                previous_coord = board.addword()
-                                prev_word = ""
-                                print(board.word_info_position())
-                                if board.word_info_position() == "vertical":
-                                    coords = previous_coord[0]
-                                    col = previous_coord[1]
-                                    print(coords, col)
-                                    for row in range(coords[0], coords[1]):
-                                        prev_word += board.board[row][col]
-                                else:
-                                    coords = previous_coord[1]
-                                    row = previous_coord[0]
-                                    print(coords)
-                                    for col in range(coords[0], coords[1]):
-                                        prev_word += board.board[row][col]
-
-                                    if prev_word in board.word_list:
-                                        board.word_list.remove(prev_word)
+                        board.remove_added_to()
 
                         board.current_word_empty()
-
-                        print(board.word_list)
 
                         bot.bot_turn(board, board_sprite, words)
                         bot.updating_rack(board)
@@ -403,8 +359,6 @@ class ScrabbleGame:
 
                         else:
                             continue
-
-                    print(board.word_list)
 
             pygame.draw.rect(
                 self.WIN,
@@ -483,8 +437,22 @@ class ScrabbleGame:
                     pygame.quit()
                     sys.exit()
 
-    def click_handling(self):
-        pass
-
-    def update_on_screen(self):
-        pass
+    def click_handling(self, player, board, board_sprite):
+        count = len(self.current_click)
+        if (
+            (count == 1 and ((self.current_click[0][0] != 16)))
+            or (count == 1 and (self.current_click[0][1] > 10))
+            or (count == 1 and (self.current_click[0][1] < 4))
+            or (count == 1 and (player.rack()[self.current_click[0][1] - 4] == ""))
+            or (count == 2 and (self.current_click[1][0] > 14))
+            or (
+                count == 2
+                and (
+                    board.colid(
+                        board_sprite,
+                        self.current_click,
+                    )
+                )
+            )
+        ):
+            self.current_click.clear()
