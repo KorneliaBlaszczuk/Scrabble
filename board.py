@@ -53,16 +53,16 @@ class Board:
         if all(x == row_key[0] for x in row_key):
             sorted_word = dict(
                 sorted(
-                self.current_word.items(),
-                key=lambda item: item[0][1],
+                    self.current_word.items(),
+                    key=lambda item: item[0][1],
                 )
             )
             self.current_word = sorted_word
         elif all(y == col_key[0] for y in col_key):
             sorted_word = dict(
                 sorted(
-                self.current_word.items(),
-                key=lambda item: item[0][0],
+                    self.current_word.items(),
+                    key=lambda item: item[0][0],
                 )
             )
             self.current_word = sorted_word
@@ -296,6 +296,7 @@ class Board:
                     board_sprite.remove(tile)
                     pygame.display.flip()
                 player.reinstate_rack(self.current_word[pos])
+        self.current_word_empty()
 
     def alone_tile(self, pos):
         """
