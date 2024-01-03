@@ -333,11 +333,9 @@ class Bot(Player):
                     coord = board.exist(result[0])
                     if len(old_word) == 1:
                         old_info = board.exist(self.new_word(board, valid_words)[1])
-                        print(self.new_word(board, valid_words)[1])
                         position = (
                             "horizontal" if old_info[0] == "vertical" else "vertical"
                         )
-                        print(position, old_info[0])
                     else:
                         position = coord[0]
                     new_word = self.made_word_info(
@@ -366,7 +364,6 @@ class Bot(Player):
         new_word = {}
 
         choice = "new" if len(board.word_list) == 0 else random.choice(["new", "added"])
-        print(choice)
 
         if choice == "new" and len(board.word_list) == 0:
             result = self.new_word(board, valid_words)
@@ -448,14 +445,14 @@ class Bot(Player):
             if (
                 position == "horizontal"
                 and self.valid_add_pos(board, row, col, position, added)
-                and board.board[row][col - old_word - 1] == ""
+                and board.board[row][col - len(old_word) - 1] == ""
                 and board.board[row][col + len(added)] == ""
             ):
                 return True
             elif (
                 position == "horizontal"
                 and self.valid_add_pos(board, row, col, position, added)
-                and board.board[row - old_word - 1][col] == ""
+                and board.board[row - len(old_word) - 1][col] == ""
                 and board.board[row + len(added)][col] == ""
             ):
                 return True
@@ -467,7 +464,6 @@ class Bot(Player):
         """
         current_word = {}
         bot_choice = self.attempts(board, valid_words)
-        print(bot_choice)
         if bot_choice:
             if bot_choice["mode"] == "first":
                 info = bot_choice["info"]
@@ -493,11 +489,9 @@ class Bot(Player):
                     board.update_word_list(bot_choice["new_word"])
                     self.update_words(bot_choice["new_word"])
                 else:
-                    print("replaced0")
                     self.replace_rack(board)
                     return {}
         else:
-            print("replaced")
             self.replace_rack(board)
         return current_word
 
@@ -511,3 +505,4 @@ class Bot(Player):
             letter_hand = self.rack().index(board.current_word[pos])
             self.rack()[letter_hand] = ""
         board.update_board()
+        board.current_word_empty()
