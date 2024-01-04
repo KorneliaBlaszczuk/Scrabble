@@ -8,6 +8,7 @@ from game import ScrabbleGame
 import pytest
 from unittest.mock import patch
 from constants import WIDTH, HEIGHT
+from letters_bag import LettersBag, letters
 
 """
 Class Player Tests
@@ -33,26 +34,23 @@ def test_player_update_words():
 def test_player_update_rack(monkeypatch):
     rack = ["C", "", "F", "G", "J", "L", "Z"]
     player = Player("Ben", rack=rack)
-    board = Board()
+    letters_bag = LettersBag()
 
     assert player.rack() == ["C", "", "F", "G", "J", "L", "Z"]
     monkeypatch.setattr("random.choice", lambda x: "A")
-    player.updating_rack(board)
+    player.updating_rack(letters_bag)
     assert player.rack() == ["C", "A", "F", "G", "J", "L", "Z"]
 
 
-def test_player_update_rack_empty(monkeypatch):
+def test_player_update_rack_empty():
     rack = ["", "", "", "", "", "", ""]
     player = Player("Ben", rack=rack)
-    board = Board()
+    letters = LettersBag()
 
-    letter_generator = iter(board.all_letters)
-
-    monkeypatch.setattr("random.choice", lambda x: next(letter_generator))
-    player.updating_rack(board)
+    player.updating_rack(letters)
     for i in range(len(rack)):
         assert player.rack()[i] != ""
-        assert player.rack()[i] in board.all_letters
+        assert player.rack()[i] in letters.letters_bag
 
 
 def test_player_update_no_empty(monkeypatch):
@@ -69,19 +67,19 @@ def test_player_update_no_empty(monkeypatch):
 def test_update_updating_bag(monkeypatch):
     rack = ["", "", "", "", "", "", ""]
     player = Player("Ben", rack=rack)
-    board = Board()
-    letter_generator = iter(board.all_letters)
+    letters_bag = LettersBag()
+    letter_generator = iter(letters_bag.all_letters)
 
     monkeypatch.setattr("random.choice", lambda x: next(letter_generator))
-    player.updating_rack(board)
+    player.updating_rack(letters_bag)
     for i in range(len(rack)):
         letter = player.rack()[i]
         assert letter != ""
         assert (
             letters[letter][0] - player.rack().count(letter)
-            == board.letters_bag[letter][0]
+            == letters_bag.letters_bag[letter][0]
         )
-        assert letter in board.all_letters
+        assert letter in letters_bag.all_letters
 
 
 def test_player_reinstate_rack():
@@ -119,11 +117,11 @@ def test_is_rack_used_true():
 def test_replace_rack(monkeypatch):
     rack = ["C", "A", "F", "G", "J", "L", "Z"]
     player = Player("Ben", rack=rack)
-    board = Board()
+    letters_bag = LettersBag()
 
     assert player.rack() == ["C", "A", "F", "G", "J", "L", "Z"]
     monkeypatch.setattr("random.choice", lambda x: "A")
-    player.replace_rack(board)
+    player.replace_rack(letters_bag)
     assert player.rack() == ["A", "A", "A", "A", "A", "A", "A"]
 
 
@@ -139,19 +137,19 @@ def test_replace_rack_used():
 def test_replace_updating_bag(monkeypatch):
     rack = ["", "", "", "", "", "", ""]
     player = Player("Ben", rack=rack)
-    board = Board()
-    letter_generator = iter(board.all_letters)
+    letters_bag = LettersBag()
+    letter_generator = iter(letters_bag.all_letters)
 
     monkeypatch.setattr("random.choice", lambda x: next(letter_generator))
-    player.updating_rack(board)
+    player.updating_rack(letters_bag)
     for i in range(len(rack)):
         letter = player.rack()[i]
         assert letter != ""
         assert (
             letters[letter][0]
-            == player.rack().count(letter) + board.letters_bag[letter][0]
+            == player.rack().count(letter) + letters_bag.letters_bag[letter][0]
         )
-        assert letter in board.all_letters
+        assert letter in letters_bag.all_letters
 
 
 def test_empty_rack_true():
@@ -173,16 +171,16 @@ def test_empty_rack_blank():
 
 def test_score_one_word():
     player = Player("Ben")
-    board = Board()
-    assert player.score_of_one_word("MAMA", board) == 6
+    letters_bag = LettersBag()
+    assert player.score_of_one_word("MAMA", letters_bag) == 6
 
 
 def test_extra_points():
     player = Player("Ben")
     rack_ana = ["", "C", "Z", "H", "L", "W", " "]
     other_player = Player("Ana", rack=rack_ana)
-    board = Board()
-    points = player.extra_points(other_player, board)
+    letters_bag = LettersBag()
+    points = player.extra_points(other_player, letters_bag)
     assert points == 9
 
 
@@ -190,19 +188,19 @@ def test_final_score():
     player = Player("Ben", words=["MAMA", "KOŃ", " MA"])
     rack_ana = ["", "C", "Z", "H", "L", "W", " "]
     other_player = Player("Ana", words=["EH"], rack=rack_ana)
-    board = Board()
-    score1 = player.final_score(other_player, board)
+    letters_bag = LettersBag()
+    score1 = player.final_score(other_player, letters_bag)
     assert score1 == 28
-    score2 = other_player.final_score(player, board)
+    score2 = other_player.final_score(player, letters_bag)
     assert score2 == -5
 
 
 def test_final_score_racks_empty():
     player = Player("Ben", words=["MAMA", "KOŃ", " MA"])
     other_player = Player("Ana", words=["EH"])
-    board = Board()
-    assert player.final_score(other_player, board) == 19
-    assert other_player.final_score(player, board) == 4
+    letters_bag = LettersBag()
+    assert player.final_score(other_player, letters_bag) == 19
+    assert other_player.final_score(player, letters_bag) == 4
 
 
 """
@@ -214,8 +212,6 @@ def test_board():
     board = Board()
     assert board.board == []
     assert board.word_list == []
-    assert board.all_letters == letters.keys()
-    assert board.letters_bag == letters
 
 
 def test_create_board():
@@ -261,12 +257,6 @@ def test_update_word_list():
     assert board.word_list == []
     board.update_word_list("MAMA")
     assert board.word_list == ["MAMA"]
-
-
-def test_taking_out(monkeypatch):
-    board = Board()
-    monkeypatch.setattr("random.choice", lambda x: "A")
-    assert board.taking_out() == "A"
 
 
 def test_row_col_to_coord():
@@ -1001,6 +991,33 @@ def test_made_word_add_to_new(monkeypatch):
     board.create_board()
     result = bot.made_word(board, words)
     assert result
+
+
+"""
+Class LettersBag Tests
+"""
+
+
+def test_lettersbag():
+    letters_bag = LettersBag()
+    assert letters_bag.letters_bag == letters
+
+
+def test_all_letters():
+    letters_bag = LettersBag()
+    assert letters_bag.all_letters == letters.keys()
+
+
+def test_taking_out():
+    letters_bag = LettersBag()
+    letters_bag.taking_out("A")
+    assert letters_bag.letters_bag["A"][0] + 1 == letters["A"][0]
+
+
+def test_put_back():
+    letters_bag = LettersBag()
+    letters_bag.put_back("A")
+    assert letters_bag.letters_bag["A"][0] - 1 == letters["A"][0]
 
 
 @pytest.fixture
