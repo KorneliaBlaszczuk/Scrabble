@@ -92,7 +92,7 @@ class LettersBag:
     def all_letters(self):
         return self.letters_bag.keys()
 
-    def taking_out(self):
+    def choosing_letter(self):
         """
         Returns a random value from a letters bag.
         Used in rack construction.
@@ -104,8 +104,13 @@ class LettersBag:
         chosen_letter = random.choice(all_letters) if all_letters else ""
         return chosen_letter
 
-    def put_back(self, letter):
+    def taking_out(self, letter):
         letter_info = self.letters_bag[letter]
         new_info = (letter_info[0] - 1, letter_info[1])
         self.letters_bag[letter] = new_info
         return self.letters_bag
+
+    def put_back(self, letter):
+        letter_info = self.letters_bag[letter]
+        new_info = (letter_info[0] + 1, letter_info[1])
+        self.letters_bag[letter] = new_info
