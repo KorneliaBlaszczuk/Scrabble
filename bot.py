@@ -1,5 +1,6 @@
 import random
 import re
+import time
 from player import Player
 
 
@@ -385,7 +386,7 @@ class Bot(Player):
 
         return False
 
-    def made_word(self, board, valid_words, bot_choice):
+    def made_word(self, board, valid_words, bot_choice, letters_bag):
         """
         Updates board, word_lists
         """
@@ -414,28 +415,31 @@ class Bot(Player):
                 board.update_word_list(bot_choice["new_word"])
                 self.update_words(bot_choice["new_word"])
             else:
-                self.replace_rack(board)
+                self.replace_rack(letters_bag)
                 return {}
         return current_word
 
-    def attempts(self, board, valid_words):
+    def attempts(self, board, valid_words, letters_bag):
         tries = 10
         bot_choice = {}
+        time.sleep(1)
         while tries > 0:
             bot_choice = self.word_finding(board, valid_words)
             if bot_choice:
-                board.current_word = self.made_word(board, valid_words, bot_choice)
+                board.current_word = self.made_word(
+                    board, valid_words, bot_choice, letters_bag
+                )
                 return board.current_word
             else:
                 tries -= 1
-        self.replace_rack(board)
+        self.replace_rack(letters_bag)
         return board.current_word
 
-    def bot_turn(self, board, board_sprite, valid_words):
+    def bot_turn(self, board, board_sprite, valid_words, letters_bag):
         """
         Manages whole bot turn
         """
-        board.current_word = self.attempts(board, valid_words)
+        board.current_word = self.attempts(board, valid_words, letters_bag)
         for pos in board.current_word:
             board.draw_tiles(board_sprite, board.current_word[pos], pos)
             letter_hand = self.rack().index(board.current_word[pos])
