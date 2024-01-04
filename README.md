@@ -3,7 +3,7 @@
 ### Autor
 Kornelia Błaszczuk <br>
 Studentka Informatyki I stopnia na Politechnice Warszawskiej <br>
-Number Indeksu: 331361 <br>
+Numer Indeksu: 331361 <br>
 Mail: 01187210@pw.edu.pl <br>
 
 ## Temat projektu
