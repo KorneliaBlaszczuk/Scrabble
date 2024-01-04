@@ -44,11 +44,11 @@ class Player:
         in the 'bag'.
         """
         for e, hand_letter in enumerate(self.rack()):
-            if hand_letter == "" and letters_bag.taking_out() != "":
-                letter = letters_bag.taking_out()
+            if hand_letter == "" and letters_bag.choosing_letter() != "":
+                letter = letters_bag.choosing_letter()
                 if letters_bag.letters_bag[letter][0] > 0:
                     self.rack()[e] = letter
-                    letters_bag.put_back(letter)
+                    letters_bag.taking_out(letter)
         return self.rack()
 
     def reinstate_rack(self, letter):
@@ -73,9 +73,7 @@ class Player:
         """
         if not self.is_rack_used():
             for e, letter in enumerate(self.rack()):
-                letter_info = letters_bag.letters_bag[letter]
-                new_info = (letter_info[0] + 1, letter_info[1])
-                letters_bag.letters_bag[letter] = new_info
+                letters_bag.put_back(letter)
                 self.rack()[e] = ""
             self.updating_rack(letters_bag)
 
