@@ -30,3 +30,29 @@ class Move:
             )
         ):
             self.click.clear()
+
+    def valid_placement(self, board, board_sprite, player):
+        if len(board.word_list) == 0 and not any(
+            key == (7, 7) for key in board.current_word.keys()
+        ):
+            board.not_valid_action(
+                board_sprite,
+                player,
+            )
+        elif (
+            len(board.word_list) != 0
+            and len(board.current_word.values()) == 1
+            and all(
+                board.not_touching(
+                    list(board.current_word.keys())[0][0],
+                    list(board.current_word.keys())[0][1],
+                )
+            )
+        ):
+            board.not_valid_action(board_sprite, player)
+        else:
+            if not (board.sort_current_word() and board.valid_added_word()):
+                board.not_valid_action(
+                    board_sprite,
+                    player,
+                )
