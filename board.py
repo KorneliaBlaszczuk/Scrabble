@@ -9,8 +9,7 @@ from constants import (
     EXTRA_SQUARES,
     extra_space_x,
 )
-import random
-from letters_bag import letters, blank_list
+from letters_bag import blank_list
 from tiles import Tile
 
 
@@ -39,16 +38,11 @@ class Board:
     def __init__(self):
         self.board = []
         self._word_list = []
-        self.letters_bag = letters.copy()
         self.current_word = {}
 
     @property
     def word_list(self):
         return self._word_list
-
-    @property
-    def all_letters(self):
-        return self.letters_bag.keys()
 
     def sort_current_word(self):
         row_key = [item[0] for item in self.current_word.keys()]
@@ -138,18 +132,6 @@ class Board:
         row, col = pos
         letter_tile = Tile(current_letter, self.row_col_to_coord(row, col))
         board_sprite.add(letter_tile)
-
-    def taking_out(self):
-        """
-        Returns a random value from a letters bag.
-        Used in rack construction.
-        """
-        all_letters = []
-        for letter in self.letters_bag:
-            if self.letters_bag[letter][0] > 0:
-                all_letters.append(letter)
-        chosen_letter = random.choice(all_letters) if all_letters else ""
-        return chosen_letter
 
     def draw_squares(self, win):
         """
