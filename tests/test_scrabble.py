@@ -3,6 +3,11 @@ from board import Board
 from letters_bag import letters
 from constants import SQUARE_SIZE
 from bot import Bot
+import pygame
+from game import ScrabbleGame
+import pytest
+from unittest.mock import patch
+from constants import WIDTH, HEIGHT
 
 """
 Class Player Tests
@@ -224,8 +229,8 @@ def test_create_board():
 def test_update_board():
     board = Board()
     board.create_board()
-    current_word = {(1, 2): "B", (2, 2): "A"}
-    board.update_board(current_word)
+    board.current_word = {(1, 2): "B", (2, 2): "A"}
+    board.update_board()
     assert board.board[1][2] == "B"
     assert board.board[2][2] == "A"
 
@@ -233,8 +238,8 @@ def test_update_board():
 def test_update_board_empty_current():
     board = Board()
     board.create_board()
-    current_word = {}
-    board.update_board(current_word)
+    board.current_word = {}
+    board.update_board()
     for row in board.board:
         assert all(element == "" for element in row)
 
@@ -242,11 +247,11 @@ def test_update_board_empty_current():
 def test_remove_from_board():
     board = Board()
     board.create_board()
-    current_word = {(1, 2): "B", (2, 2): "A"}
-    board.update_board(current_word)
+    board.current_word = {(1, 2): "B", (2, 2): "A"}
+    board.update_board()
     assert board.board[1][2] == "B"
     assert board.board[2][2] == "A"
-    board.remove_from_board(current_word)
+    board.remove_from_board()
     assert board.board[1][2] == ""
     assert board.board[2][2] == ""
 
@@ -281,55 +286,56 @@ def test_coord_to_row_col():
 def test_addword():
     board = Board()
     board.create_board()
-    current_word = {(1, 2): "B", (2, 2): "A", (4, 2): "C"}
-    result = board.addword(current_word)
-    assert result == ([(3, 4), 2], [4])
+    board.current_word = {(1, 2): "B", (2, 2): "A", (4, 2): "C"}
+    result = board.addword()
+    assert result == [(3, 4), 2]
 
 
 def test_addword_col():
     board = Board()
     board.create_board()
-    current_word = {(2, 7): "W", (4, 7): "N", (5, 7): "O"}
-    result = board.addword(current_word)
-    assert result == ([(3, 4), 7], [4, 5])
+    board.current_word = {(2, 7): "W", (4, 7): "N", (5, 7): "O"}
+    result = board.addword()
+    assert result == [(3, 4), 7]
 
 
 def test_addword_alone():
     board = Board()
     board.create_board()
-    current_word = {(1, 2): "B", (2, 2): "A", (3, 2): "C"}
-    result = board.addword(current_word)
-    assert result == ([(0, 0), 2], [])
+    board.current_word = {(1, 2): "B", (2, 2): "A", (3, 2): "C"}
+    result = board.addword()
+    assert result == [(0, 0), 2]
 
 
 def test_valid_added():
     board = Board()
     board.create_board()
-    current_word = {(1, 2): "B", (2, 2): "A", (4, 2): "C"}
-    result = board.valid_added_word(current_word)
+    board.current_word = {(1, 2): "B", (2, 2): "A", (4, 2): "C"}
+    result = board.valid_added_word()
     assert not result
 
 
 def test_valid_blank():
     board = Board()
     board.create_board()
-    current_word = {
+    board.current_word = {
         (3, 7): "I",
         (3, 8): "K",
         (3, 9): "T",
         (4, 8): " ",
         (5, 8): "D",
     }
-    result = board.update_board(current_word)
-    current_word = {(2, 7): "W", (4, 7): "N", (5, 7): "O"}
-    result = board.valid_added_word(current_word)
+    result = board.update_board()
+    board.current_word_empty()
+    board.current_word = {(2, 7): "W", (4, 7): "N", (5, 7): "O"}
+    result = board.valid_added_word()
     assert result
 
 
 def test_valid_added_two_word_add():
     board = Board()
     board.create_board()
-    current_word = {
+    board.current_word = {
         (3, 7): "M",
         (3, 8): "I",
         (3, 9): "T",
@@ -337,74 +343,68 @@ def test_valid_added_two_word_add():
         (5, 8): "O",
         (5, 9): "Ś",
     }
-    result = board.update_board(current_word)
-    current_word = {(2, 8): "M", (4, 8): "G", (6, 8): "T"}
-    result = board.valid_added_word(current_word)
+    result = board.update_board()
+    board.current_word_empty()
+    board.current_word = {(2, 8): "M", (4, 8): "G", (6, 8): "T"}
+    result = board.valid_added_word()
     assert not result
 
 
 def test_valid_added_empty():
     board = Board()
     board.create_board()
-    current_word = {(1, 2): "B", (2, 2): "A", (3, 2): "C"}
-    result = board.valid_added_word(current_word)
-    assert result
+    board.current_word = {(1, 2): "B", (2, 2): "A", (3, 2): "C"}
+    result = board.valid_added_word()
+    assert not result
 
 
 def test_valid_added_true():
     board = Board()
     board.create_board()
-    current_word = {(3, 2): "C", (4, 2): "D"}
-    board.update_board(current_word)
-    current_word = {(1, 2): "B", (2, 2): "A", (5, 2): "C"}
-    result = board.valid_added_word(current_word)
+    board.current_word = {(3, 2): "C", (4, 2): "D"}
+    board.update_board()
+    board.current_word = {(1, 2): "B", (2, 2): "A", (5, 2): "C"}
+    result = board.valid_added_word()
     assert result
 
 
 def test_valid_added_cross():
     board = Board()
     board.create_board()
-    current_word = {(2, 4): "W", (2, 5): "I", (2, 6): "I"}
-    board.update_board(current_word)
-    current_word = {(1, 5): "G", (2, 5): "I", (3, 5): "T"}
-    result = board.valid_added_word(current_word)
+    board.current_word = {(2, 4): "W", (2, 5): "I", (2, 6): "I"}
+    board.update_board()
+    board.current_word = {(1, 5): "G", (2, 5): "I", (3, 5): "T"}
+    result = board.valid_added_word()
     assert result
 
 
 def test_valid_added_alone():
     board = Board()
     board.create_board()
-    current_word = {(1, 2): "B", (2, 2): "A", (3, 2): "C"}
-    result = board.valid_added_word(current_word)
-    assert result
+    board.current_word = {(1, 2): "B", (2, 2): "A", (3, 2): "C"}
+    result = board.valid_added_word()
+    assert not result
 
 
 def test_valid_added_one_false():
     board = Board()
     board.create_board()
-    current_word = {(4, 2): "D"}
-    board.update_board(current_word)
-    current_word = {(1, 2): "B", (2, 2): "A", (5, 2): "C"}
-    result = board.valid_added_word(current_word)
+    board.current_word = {(4, 2): "D"}
+    board.update_board()
+    board.current_word = {(1, 2): "B", (2, 2): "A", (5, 2): "C"}
+    result = board.valid_added_word()
     assert not result
 
 
 def test_alone_tile():
     board = Board()
     board.create_board()
-    # current_word = {(4, 2): "D"}
-    result = board.alone_tile((4, 2))
+    board.current_word_update((1, 2), "A")
+    result = board.not_touching(
+        list(board.current_word.keys())[0][0],
+        list(board.current_word.keys())[0][1],
+    )
     assert result
-
-
-def test_alone_one_to_word_added():
-    board = Board()
-    board.create_board()
-    current_word = {(1, 2): "B", (2, 2): "A", (3, 2): "C"}
-    board.update_board(current_word)
-    current_word = {(4, 2): "D"}
-    result = board.alone_tile((4, 2))
-    assert not result
 
 
 def test_not_touching():
@@ -437,14 +437,15 @@ def test_check_row_empty():
 def test_check_row():
     board = Board()
     board.create_board()
-    board.update_board({(4, 1): "T", (4, 2): "A"})
+    board.current_word = {(4, 1): "T", (4, 2): "A"}
+    board.update_board()
     assert board.check_row() == ["TA"]
 
 
 def test_more_words_row():
     board = Board()
     board.create_board()
-    current = {
+    board.current_word = {
         (4, 1): "T",
         (4, 2): "A",
         (4, 3): "T",
@@ -452,7 +453,7 @@ def test_more_words_row():
         (4, 6): "T",
         (4, 7): "A",
     }
-    board.update_board(current)
+    board.update_board()
     assert board.check_row() == ["TAT", "ATA"]
 
 
@@ -465,14 +466,15 @@ def test_check_col_empty():
 def test_check_col():
     board = Board()
     board.create_board()
-    board.update_board({(4, 1): "T", (5, 1): "A"})
+    board.current_word = {(4, 1): "T", (5, 1): "A"}
+    board.update_board()
     assert board.check_col() == ["TA"]
 
 
 def test_more_words_col():
     board = Board()
     board.create_board()
-    current = {
+    board.current_word = {
         (1, 1): "T",
         (2, 1): "A",
         (3, 1): "T",
@@ -480,7 +482,7 @@ def test_more_words_col():
         (6, 1): "T",
         (7, 1): "A",
     }
-    board.update_board(current)
+    board.update_board()
     assert board.check_col() == ["TAT", "ATA"]
 
 
@@ -493,20 +495,20 @@ def test_word_in_board_empty():
 def test_word_in_board():
     board = Board()
     board.create_board()
-    current = {
+    board.current_word = {
         (4, 1): "T",
         (4, 2): "A",
         (4, 3): "T",
         (4, 4): "A",
     }
-    board.update_board(current)
+    board.update_board()
     assert board.word_in_board() == ["TATA"]
 
 
 def test_word_in_board_too_long():
     board = Board()
     board.create_board()
-    current = {
+    board.current_word = {
         (4, 1): "T",
         (4, 2): "A",
         (4, 3): "T",
@@ -514,22 +516,22 @@ def test_word_in_board_too_long():
         (4, 5): "T",
         (4, 6): "A",
     }
-    board.update_board(current)
+    board.update_board()
     assert board.word_in_board() == []
 
 
 def test_word_in_board_too_short():
     board = Board()
     board.create_board()
-    current = {(4, 1): "T"}
-    board.update_board(current)
+    board.current_word = {(4, 1): "T"}
+    board.update_board()
     assert board.word_in_board() == []
 
 
 def test_word_in_board_row_and_col():
     board = Board()
     board.create_board()
-    current = {
+    board.current_word = {
         (1, 1): "T",
         (2, 1): "A",
         (3, 1): "T",
@@ -540,7 +542,7 @@ def test_word_in_board_row_and_col():
         (4, 6): "T",
         (4, 7): "A",
     }
-    board.update_board(current)
+    board.update_board()
     assert board.word_in_board() == ["ATA", "TATA", "TA"]
 
 
@@ -601,7 +603,7 @@ def test_word_authentication_two_blank_only():
 def test_word_checking_true():
     board = Board()
     board.create_board()
-    current = {
+    board.current_word = {
         (1, 1): "T",
         (2, 1): "A",
         (3, 1): "T",
@@ -609,7 +611,7 @@ def test_word_checking_true():
         (6, 5): "T",
         (7, 5): "A",
     }
-    board.update_board(current)
+    board.update_board()
     with open("slowa.txt", "r", encoding="utf-8") as file:
         content = file.read()
         words = content.split()
@@ -619,10 +621,10 @@ def test_word_checking_true():
 def test_word_checking_cross():
     board = Board()
     board.create_board()
-    current_word = {(2, 4): "W", (2, 5): "I", (2, 6): "I"}
-    board.update_board(current_word)
-    current_word = {(1, 5): "G", (2, 5): "I", (3, 5): "T"}
-    board.update_board(current_word)
+    board.current_word = {(2, 4): "W", (2, 5): "I", (2, 6): "I"}
+    board.update_board()
+    board.current_word = {(1, 5): "G", (2, 5): "I", (3, 5): "T"}
+    board.update_board()
     with open("slowa.txt", "r", encoding="utf-8") as file:
         content = file.read()
         words = content.split()
@@ -632,7 +634,7 @@ def test_word_checking_cross():
 def test_word_checking_false():
     board = Board()
     board.create_board()
-    current = {
+    board.current_word = {
         (1, 1): "T",
         (2, 1): "A",
         (3, 1): "T",
@@ -640,7 +642,7 @@ def test_word_checking_false():
         (6, 5): "T",
         (7, 5): "Z",
     }
-    board.update_board(current)
+    board.update_board()
     with open("slowa.txt", "r", encoding="utf-8") as file:
         content = file.read()
         words = content.split()
@@ -651,7 +653,7 @@ def test_word_list_add():
     board = Board()
     player = Player("Gracz")
     board.create_board()
-    all_words = {
+    board.current_word = {
         (1, 1): "T",
         (2, 1): "A",
         (3, 1): "T",
@@ -659,7 +661,7 @@ def test_word_list_add():
         (6, 5): "T",
         (7, 5): "A",
     }
-    board.update_board(all_words)
+    board.update_board()
     board.update_word_list("TATA")
     board.word_lists_adding(player)
     assert player.words() == ["TA"]
@@ -669,7 +671,7 @@ def test_word_list_add():
 def test_exist():
     board = Board()
     board.create_board()
-    all_words = {
+    board.current_word = {
         (1, 1): "T",
         (2, 1): "A",
         (3, 1): "T",
@@ -677,14 +679,14 @@ def test_exist():
         (6, 5): "T",
         (7, 5): "A",
     }
-    board.update_board(all_words)
+    board.update_board()
     assert board.exist("TATA") == ["vertical", 1, 1]
 
 
 def test_exist_false():
     board = Board()
     board.create_board()
-    all_words = {
+    board.current_word = {
         (1, 1): "T",
         (2, 1): "A",
         (3, 1): "T",
@@ -692,8 +694,14 @@ def test_exist_false():
         (6, 5): "T",
         (7, 5): "A",
     }
-    board.update_board(all_words)
+    board.update_board()
     assert not board.exist("MAMA")
+
+
+def test_space_count():
+    board = Board()
+    word_coord = [1, 2, 3, 7, 8, 12, 13]
+    assert board.space_count(word_coord) == 2
 
 
 """
@@ -708,13 +716,19 @@ def test_bot():
     assert bot.rack() == ["", "", "", "", "", "", ""]
 
 
+def test_first_word():
+    pass
+
+
 def test_valid_new_word():
     with open("slowa.txt", "r", encoding="utf-8") as file:
         content = file.read()
         words = content.split()
     rack = ["A", "A", "M", "Z", "W", "R", "S"]
     bot = Bot(rack=rack)
-    assert bot.valid_new_word(words) == ["A", "A"]
+    board = Board()
+    board.update_word_list("A")
+    assert bot.valid_new_word(words, board) == (("a", "aa"), "A")
 
 
 def test_valid_new_word_none():
@@ -724,26 +738,9 @@ def test_valid_new_word_none():
     rack = ["L", "W", "F", "Ź", "P", "R", "S"]
     # there won't be any avaible words, because there is no vowel on rack
     bot = Bot(rack=rack)
-    assert not bot.valid_new_word(words)
-
-
-def test_valid_new_word_one_blank():
-    with open("slowa.txt", "r", encoding="utf-8") as file:
-        content = file.read()
-        words = content.split()
-    rack = ["L", " ", "F", "Ź", "P", "R", "S"]
-    bot = Bot(rack=rack)
-    assert bot.valid_new_word(words)
-
-
-def test_valid_new_word_two_blank():
-    with open("slowa.txt", "r", encoding="utf-8") as file:
-        content = file.read()
-        words = content.split()
-    rack = [" ", " ", "F", "Ź", "P", "R", "S"]
-    bot = Bot(rack=rack)
-    assert bot.valid_new_word(words)
-    assert bot.valid_new_word(words) == [" ", " "]
+    board = Board()
+    board.update_word_list("HM")
+    assert bot.valid_new_word(words, board) == (("", ""), "HM")
 
 
 def test_new_word_vertical_first(monkeypatch):
@@ -772,65 +769,14 @@ def test_new_word_horizontal_first(monkeypatch):
     assert result[0] == 7
 
 
-def test_find_valid_position_none():
-    """
-    To test this situation, we take small iterate list, with
-    letter already in those coordinates
-    """
-    with open("slowa.txt", "r", encoding="utf-8") as file:
-        content = file.read()
-        words = content.split()
-    board = Board()
-    board.create_board()
-    all_words = {
-        (6, 5): "T",
-        (7, 5): "A",
-    }
-    board.update_board(all_words)
-    board.update_word_list("TA")
-    rack = ["A", "A", "M", "Z", "W", "R", "S"]
-    bot = Bot(rack=rack)
-    arg = [5, 6]
-    result = bot.find_valid_position(words, board, arg, arg, "horizontal")
-    assert bot.valid_new_word(words) == ["A", "A"]
-    assert result == ["", "", "", ""]
-
-
-def test_is_valid_pos_none():
-    with open("slowa.txt", "r", encoding="utf-8") as file:
-        content = file.read()
-        words = content.split()
-    board = Board()
-    board.create_board()
-    all_words = {
-        (6, 5): "T",
-        (7, 5): "A",
-    }
-    board.update_board(all_words)
-    board.update_word_list("TA")
-    rack = ["A", "A", "M", "Z", "W", "R", "S"]
-    bot = Bot(rack=rack)
-    word = bot.valid_new_word(words)
-    result = bot.is_valid_position(board, 5, 6, "horizontal", word)
-    assert not result
-
-
-def test_is_valid_pos():
-    board = Board()
-    board.create_board()
-    bot = Bot()
-    result = bot.is_valid_position(board, 1, 1, "horizontal", "AA")
-    assert result
-
-
 def test_first_new_word_even():
     bot = Bot()
-    assert bot.first_new_word("MECH") == 5
+    assert bot.first_word("MECH") == 5
 
 
 def test_first_new_word_odd():
     bot = Bot()
-    assert bot.first_new_word("BÓG") == 6
+    assert bot.first_word("BÓG") == 6
 
 
 def test_find_matching_choice():
@@ -853,14 +799,14 @@ def test_find_matching_choice_none():
     assert result == ""
 
 
-def test_add_to_word():
+def test_add_to():
     with open("slowa.txt", "r", encoding="utf-8") as file:
         content = file.read()
         words = content.split()
     rack = ["I", "A", "M", "Z", "W", "R", "S"]
     bot = Bot(rack=rack)
     word_list = ["mama"]
-    result = bot.add_to_word(words, word_list)
+    result = bot.add_to(words, word_list)
     assert result == ("mama", "imama")
 
 
@@ -871,7 +817,7 @@ def test_add_to_word_no_list():
     rack = ["I", "A", "M", "Z", "W", "R", "S"]
     word_list = []
     bot = Bot(rack=rack)
-    result = bot.add_to_word(words, word_list)
+    result = bot.add_to(words, word_list)
     assert result == ("", "")
 
 
@@ -882,7 +828,7 @@ def test_add_to_word_none():
     rack = ["", "", "", "", "", "", ""]
     bot = Bot(rack=rack)
     word_list = ["MAMA"]
-    result = bot.add_to_word(words, word_list)
+    result = bot.add_to(words, word_list)
     assert result == ("", "")
 
 
@@ -914,7 +860,10 @@ def test_valid_add_position():
     bot = Bot()
     board = Board()
     board.create_board()
-    board.update_board({(1, 0): "A", (1, 1): "M"})
+    current_word = {(1, 0): "A", (1, 1): "M"}
+    for pos in current_word:
+        board.current_word_update(pos, current_word[pos])
+    board.update_board()
     assert bot.valid_add_pos(board, 1, 2, "vertical", "AM")
 
 
@@ -936,7 +885,10 @@ def test_valid_add_edge():
     bot = Bot()
     board = Board()
     board.create_board()
-    board.update_board({(14, 11): "A", (14, 12): "M"})
+    current_word = {(14, 11): "A", (14, 12): "M"}
+    for pos in current_word:
+        board.current_word_update(pos, current_word[pos])
+    board.update_board()
     assert bot.valid_add_pos(board, 14, 13, "horizontal", "AM")
 
 
@@ -1049,3 +1001,39 @@ def test_made_word_add_to_new(monkeypatch):
     board.create_board()
     result = bot.made_word(board, words)
     assert result
+
+
+@pytest.fixture
+def game_instance():
+    # Set up the Pygame window
+    pygame.init()
+    game = ScrabbleGame()
+    yield game
+    pygame.quit()
+
+
+def test_start_win_displayed(game_instance):
+    # Check if the window is displayed as expected
+    assert pygame.display.get_surface().get_at((WIDTH // 2, HEIGHT)) == (0, 0, 0, 255)
+
+    assert game_instance.player_score == 0
+    assert game_instance.bot_score == 0
+
+
+def test_game_init():
+    game = ScrabbleGame()
+    assert isinstance(game, ScrabbleGame)
+
+
+def test_win_displayed(game_instance):
+    # Use patch to mock the behavior of pygame.display.update()
+    with patch("pygame.display.update") as mock_update:
+        game_instance.start_win()
+        mock_update.assert_called_once()
+
+    assert pygame.display.get_surface().get_at((WIDTH // 2, (HEIGHT // 2))) == (
+        251,
+        249,
+        249,
+        255,
+    )
