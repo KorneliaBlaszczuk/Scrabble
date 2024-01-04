@@ -20,6 +20,7 @@ from constants import (
 from tiles import Tile
 from player import Player
 from bot import Bot
+from move import Move
 
 
 class ScrabbleGame:
@@ -189,6 +190,7 @@ class ScrabbleGame:
         player = Player(player_name)
         bot = Bot()
         board = Board()
+        move = Move()
 
         board.create_board()
 
@@ -228,8 +230,10 @@ class ScrabbleGame:
                         if player.is_rack_used() is False:
                             rack_sprite.empty()
                             player.replace_rack(board)
+
                             bot.bot_turn(board, board_sprite, words)
                             bot.updating_rack(board)
+
                             board.draw_rack(player.rack(), rack_sprite)
                             round += 1
 
@@ -254,12 +258,13 @@ class ScrabbleGame:
                     position = pygame.mouse.get_pos()
                     x, y = position
                     row, col = board.coord_to_row_col(position)
-                    self.current_click.append((row, col))
-                    self.click_handling(player, board, board_sprite)
+                    move.click.append((row, col))
+                    # manages mouse clicks
+                    move.click_handling(player, board, board_sprite)
 
-                    if len(self.current_click) == 2:
-                        rack_row, rack_col = self.current_click[0]
-                        letter_row, letter_col = self.current_click[1]
+                    if len(move.click) == 2:
+                        rack_row, rack_col = move.click[0]
+                        letter_row, letter_col = move.click[1]
                         letter_x, letter_y = board.row_col_to_coord(
                             letter_row,
                             letter_col,
@@ -267,7 +272,7 @@ class ScrabbleGame:
 
                         # If the player clicks on an empty space in rack
                         if player.rack()[rack_col - 4] == "":
-                            self.current_click.clear()
+                            move.click.clear()
                             break
 
                         # Gets info about letter tile; moves it
@@ -299,11 +304,12 @@ class ScrabbleGame:
                                 x += SQUARE_SIZE
                         x = extra_space_x
                         y = extra_space_y + EXTRA_SPACE // 2
-                        self.current_click.clear()
+                        move.click.clear()
 
                 # If enter the word is checked and then bot turn
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_RETURN and board.current_word:
+                        # manages word placements
                         if len(board.word_list) == 0 and not any(
                             key == (7, 7) for key in board.current_word.keys()
                         ):
@@ -311,29 +317,28 @@ class ScrabbleGame:
                                 board_sprite,
                                 player,
                             )
-                        elif len(board.word_list) == 0:
-                            continue
                         elif (
                             len(board.word_list) != 0
-                            and len(board.current_word.values()) < 2
+                            and len(board.current_word.values()) == 1
+                            and all(
+                                board.not_touching(
+                                    list(board.current_word.keys())[0][0],
+                                    list(board.current_word.keys())[0][1],
+                                )
+                            )
                         ):
-                            for pos in board.current_word:
-                                if board.alone_tile(pos):
-                                    board.not_valid_action(board_sprite, player)
-                                else:
-                                    continue
+                            print("here1")
+                            board.not_valid_action(board_sprite, player)
                         else:
-                            row_key = [item[0] for item in board.current_word.keys()]
-                            col_key = [item[1] for item in board.current_word.keys()]
-                            if board.sort_current_word() and board.valid_added_word(
-                                row_key, col_key
+                            if not (
+                                board.sort_current_word() and board.valid_added_word()
                             ):
-                                pass
-                            else:
+                                print("here2")
                                 board.not_valid_action(
                                     board_sprite,
                                     player,
                                 )
+
                         board.update_board()
                         board.validation(
                             board_sprite,
@@ -353,6 +358,7 @@ class ScrabbleGame:
 
                         round += 1
 
+                        # after round the game checks if the terms for end
                         if player.empty_rack() or bot.empty_rack():
                             self.end(player_name, player_score, bot_score)
                             run = False
@@ -366,6 +372,7 @@ class ScrabbleGame:
                 (rect_x, rect_y, rect_width, rect_height),
             )
 
+            # prints round number
             current_text = f"Round {round}"
             font = pygame.font.Font("fonts/rubikname.ttf", 30)
             text = font.render(current_text, True, WHITE)
@@ -389,6 +396,9 @@ class ScrabbleGame:
         return run
 
     def end(self, player_name, player_score, bot_score):
+        """
+        Manages ending screen
+        """
         self.WIN.fill(CENTRAL_COLOR)
         pygame.font.init()
 
@@ -436,23 +446,3 @@ class ScrabbleGame:
                 if event.type == pygame.QUIT or event.type == pygame.KEYDOWN:
                     pygame.quit()
                     sys.exit()
-
-    def click_handling(self, player, board, board_sprite):
-        count = len(self.current_click)
-        if (
-            (count == 1 and ((self.current_click[0][0] != 16)))
-            or (count == 1 and (self.current_click[0][1] > 10))
-            or (count == 1 and (self.current_click[0][1] < 4))
-            or (count == 1 and (player.rack()[self.current_click[0][1] - 4] == ""))
-            or (count == 2 and (self.current_click[1][0] > 14))
-            or (
-                count == 2
-                and (
-                    board.colid(
-                        board_sprite,
-                        self.current_click,
-                    )
-                )
-            )
-        ):
-            self.current_click.clear()
