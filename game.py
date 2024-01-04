@@ -21,6 +21,7 @@ from tiles import Tile
 from player import Player
 from bot import Bot
 from move import Move
+from letters_bag import LettersBag
 
 
 class ScrabbleGame:
@@ -36,8 +37,26 @@ class ScrabbleGame:
         pygame.font.init()
         self.current_click = []
 
+        self._turn = "Bot"
+        self.round = 1
+
         self.player_score = 0
         self.bot_score = 0
+
+    @property
+    def turn(self):
+        return self._turn
+
+    def update_turn(self, player):
+        if self.turn == "Bot":
+            self._turn = player.name()
+        else:
+            self._turn = "Bot"
+        return self._turn
+
+    def update_round(self):
+        self.round += 1
+        return self.round
 
     def start_win(self):
         """
@@ -191,13 +210,14 @@ class ScrabbleGame:
         bot = Bot()
         board = Board()
         move = Move()
+        letters_bag = LettersBag()
 
         board.create_board()
 
-        player.updating_rack(board)
+        player.updating_rack(letters_bag)
         board.draw_rack(player.rack(), rack_sprite)
 
-        bot.updating_rack(board)
+        bot.updating_rack(letters_bag)
 
         # score of a player and bot
         player_score = 0
@@ -205,11 +225,12 @@ class ScrabbleGame:
 
         # Skip and round counter
         skip_count = 0
-        round = 1
 
         with open("slowa.txt", "r", encoding="utf-8") as file:
             content = file.read()
             words = content.split()
+
+        self.update_turn(player)
 
         while run:
             clock.tick(60)
@@ -229,23 +250,38 @@ class ScrabbleGame:
                         # Replaces rack, only if it wasn't used (bot turn)
                         if player.is_rack_used() is False:
                             rack_sprite.empty()
-                            player.replace_rack(board)
+                            player.replace_rack(letters_bag)
 
-                            bot.bot_turn(board, board_sprite, words)
-                            bot.updating_rack(board)
+                            self.update_turn(player)
+                            self.draw_info_box()
+                            bot.bot_turn(
+                                board,
+                                board_sprite,
+                                words,
+                                letters_bag,
+                            )
+                            bot.updating_rack(letters_bag)
+                            self.update_turn(player)
+                            self.draw_info_box()
 
                             board.draw_rack(player.rack(), rack_sprite)
-                            round += 1
+                            self.update_round()
 
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_s:
                         # Skips round; if count == 2: end of the game
                         skip_count += 1
                         board.not_valid_action(board_sprite, player)
-                        bot.bot_turn(board, board_sprite, words)
+
+                        self.update_turn(player)
+                        self.draw_info_box()
+                        bot.bot_turn(board, board_sprite, words, letters_bag)
                         bot.updating_rack(board)
+                        self.update_turn(player)
+                        self.draw_info_box()
+
                         board.draw_rack(player.rack(), rack_sprite)
-                        round += 1
+                        self.update_round()
                         if skip_count == 2 or bot.empty_rack():
                             self.end(player_name, player_score, bot_score)
                             run = False
@@ -310,34 +346,7 @@ class ScrabbleGame:
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_RETURN and board.current_word:
                         # manages word placements
-                        if len(board.word_list) == 0 and not any(
-                            key == (7, 7) for key in board.current_word.keys()
-                        ):
-                            board.not_valid_action(
-                                board_sprite,
-                                player,
-                            )
-                        elif (
-                            len(board.word_list) != 0
-                            and len(board.current_word.values()) == 1
-                            and all(
-                                board.not_touching(
-                                    list(board.current_word.keys())[0][0],
-                                    list(board.current_word.keys())[0][1],
-                                )
-                            )
-                        ):
-                            print("here1")
-                            board.not_valid_action(board_sprite, player)
-                        else:
-                            if not (
-                                board.sort_current_word() and board.valid_added_word()
-                            ):
-                                print("here2")
-                                board.not_valid_action(
-                                    board_sprite,
-                                    player,
-                                )
+                        move.valid_placement(board, board_sprite, player)
 
                         board.update_board()
                         board.validation(
@@ -350,13 +359,20 @@ class ScrabbleGame:
 
                         board.current_word_empty()
 
-                        bot.bot_turn(board, board_sprite, words)
-                        bot.updating_rack(board)
+                        self.win_update(board, rack_sprite, board_sprite)
 
-                        player.updating_rack(board)
+                        self.update_turn(player)
+
+                        self.draw_info_box()
+                        bot.bot_turn(board, board_sprite, words, letters_bag)
+                        bot.updating_rack(letters_bag)
+                        self.update_turn(player)
+                        self.draw_info_box()
+
+                        player.updating_rack(letters_bag)
                         board.draw_rack(player.rack(), rack_sprite)
 
-                        round += 1
+                        self.update_round()
 
                         # after round the game checks if the terms for end
                         if player.empty_rack() or bot.empty_rack():
@@ -366,32 +382,12 @@ class ScrabbleGame:
                         else:
                             continue
 
-            pygame.draw.rect(
-                self.WIN,
-                CENTRAL_COLOR,
-                (rect_x, rect_y, rect_width, rect_height),
-            )
+            self.draw_info_box()
 
-            # prints round number
-            current_text = f"Round {round}"
-            font = pygame.font.Font("fonts/rubikname.ttf", 30)
-            text = font.render(current_text, True, WHITE)
-            text_rect = text.get_rect(
-                center=(WIDTH // 2, rect_y + rect_height // 2),
-            )
-            self.WIN.blit(text, text_rect)
-            pygame.display.flip()
+            player_score = player.final_score(bot, letters_bag)
+            bot_score = bot.final_score(player, letters_bag)
 
-            player_score = player.final_score(bot, board)
-            bot_score = bot.final_score(player, board)
-
-            board.draw_squares(self.WIN)
-            board.draw_rack_squares(self.WIN)
-            rack_sprite.update()
-            rack_sprite.draw(self.WIN)
-            board_sprite.update()
-            board_sprite.draw(self.WIN)
-            pygame.display.update()
+            self.win_update(board, rack_sprite, board_sprite)
 
         return run
 
@@ -446,3 +442,30 @@ class ScrabbleGame:
                 if event.type == pygame.QUIT or event.type == pygame.KEYDOWN:
                     pygame.quit()
                     sys.exit()
+
+    def draw_info_box(self):
+        pygame.draw.rect(
+            self.WIN,
+            CENTRAL_COLOR,
+            (rect_x, rect_y, rect_width, rect_height),
+        )
+
+        # prints round number
+        current_text = f"Round {self.round}: {self.turn}"
+        font = pygame.font.Font("fonts/rubikname.ttf", 30)
+        text = font.render(current_text, True, WHITE)
+        text_rect = text.get_rect(
+            center=(WIDTH // 2, rect_y + rect_height // 2),
+        )
+        self.WIN.blit(text, text_rect)
+        pygame.display.flip()
+
+    def win_update(self, board, rack_sprite, board_sprite):
+        board.draw_squares(self.WIN)
+        board.draw_rack_squares(self.WIN)
+        rack_sprite.update()
+        rack_sprite.draw(self.WIN)
+        board_sprite.update()
+        board_sprite.draw(self.WIN)
+
+        pygame.display.update()
