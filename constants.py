@@ -29,7 +29,7 @@ EXTRA_SQUARES = 7
 """
 Defined box sizes
 """
-rect_width = WIDTH // 4
+rect_width = WIDTH // 2
 rect_height = SQUARE_SIZE
 rect_x = WIDTH // 2 - rect_width // 2
 rect_y = (HEIGHT // 2) + 5 * EXTRA_SPACE
