@@ -1,6 +1,9 @@
+import random
+
 """
 All avabile letters with its start amount and values (points)
 """
+
 letters = {
     "A": (9, 1),
     "Ą": (1, 5),
@@ -75,3 +78,34 @@ blank_list = [
     "ź",
     "ż",
 ]
+
+
+class LettersBag:
+    def __init__(self):
+        self._letters_bag = letters.copy()
+
+    @property
+    def letters_bag(self):
+        return self._letters_bag
+
+    @property
+    def all_letters(self):
+        return self.letters_bag.keys()
+
+    def taking_out(self):
+        """
+        Returns a random value from a letters bag.
+        Used in rack construction.
+        """
+        all_letters = []
+        for letter in self.letters_bag:
+            if self.letters_bag[letter][0] > 0:
+                all_letters.append(letter)
+        chosen_letter = random.choice(all_letters) if all_letters else ""
+        return chosen_letter
+
+    def put_back(self, letter):
+        letter_info = self.letters_bag[letter]
+        new_info = (letter_info[0] - 1, letter_info[1])
+        self.letters_bag[letter] = new_info
+        return self.letters_bag
