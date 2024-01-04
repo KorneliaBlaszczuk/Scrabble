@@ -44,18 +44,13 @@ class Player:
         in the 'bag'.
         """
         for e, hand_letter in enumerate(self.rack()):
-            if hand_letter == "":
-                if board.taking_out() == "":
-                    pass
-                else:
-                    letter = board.taking_out()
-                    if board.letters_bag[letter][0] > 0:
-                        self.rack()[e] = letter
-                        letter_info = board.letters_bag[letter]
-                        new_info = (letter_info[0] - 1, letter_info[1])
-                        board.letters_bag[letter] = new_info
-                    else:
-                        continue
+            if hand_letter == "" and board.taking_out() != "":
+                letter = board.taking_out()
+                if board.letters_bag[letter][0] > 0:
+                    self.rack()[e] = letter
+                    letter_info = board.letters_bag[letter]
+                    new_info = (letter_info[0] - 1, letter_info[1])
+                    board.letters_bag[letter] = new_info
         return self.rack()
 
     def reinstate_rack(self, letter):
@@ -66,54 +61,39 @@ class Player:
             if hand_letter == "":
                 self.rack()[e] = letter
                 break
-            else:
-                continue
 
     def is_rack_used(self):
         """
         Checks whether the stand is in use, i.e. whether any letters
         have already been removed during the current round
         """
-        for char in self.rack():
-            if char == "":
-                return True
-            else:
-                continue
-        return False
+        return "" in self.rack()
 
     def replace_rack(self, board):
         """
         Replaces the letters on the rack
         """
-        if self.is_rack_used():
-            return self.rack()
-        else:
+        if not self.is_rack_used():
             for e, letter in enumerate(self.rack()):
                 letter_info = board.letters_bag[letter]
                 new_info = (letter_info[0] + 1, letter_info[1])
                 board.letters_bag[letter] = new_info
                 self.rack()[e] = ""
-        self.updating_rack(board)
+            self.updating_rack(board)
+
         return self.rack()
 
     def empty_rack(self):
         """
         Checks if the rack is empty
         """
-        for place in self.rack():
-            if place != "":
-                return False
-        return True
+        return all(place == "" for place in self.rack())
 
     def score_of_one_word(self, word, board):
         """
         Returns point score of given word
         """
-        score = 0
-        for letter in word:
-            current_amount, points = board.letters_bag[letter]
-            score += points
-        return score
+        return sum(board.letters_bag[letter][1] for letter in word)
 
     def extra_points(self, other, board):
         """
@@ -121,13 +101,9 @@ class Player:
         Used when the other player's rack isn't
         empty while player's is
         """
-        extra_points = 0
-        for letter in other.rack():
-            if letter != "":
-                amount, points = board.letters_bag[letter]
-                extra_points += points
-            else:
-                continue
+        extra_points = sum(
+            board.letters_bag[letter][1] for letter in other.rack() if letter != ""
+        )
         return extra_points
 
     def final_score(self, other, board):
@@ -137,16 +113,12 @@ class Player:
         Ending the game, while having a letters on rack,
         results in minus points
         """
-        total_score = 0
-        for word in self.words():
-            total_score += self.score_of_one_word(word, board)
+        total_score = sum(self.score_of_one_word(word, board) for word in self.words())
+
         if self.empty_rack():
             total_score += self.extra_points(other, board)
         else:
-            for letter in self.rack():
-                if letter != "":
-                    amount, points = board.letters_bag[letter]
-                    total_score -= points
-                else:
-                    continue
+            total_score -= sum(
+                board.letters_bag[letter][1] for letter in self.rack() if letter != ""
+            )
         return total_score
