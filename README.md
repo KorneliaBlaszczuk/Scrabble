@@ -15,7 +15,20 @@ W wersji piprowej proponuję uproszczenie gry do maksymalnie 5-literowych słów
 <br><br>
 Dokładne reguły, punktacja i liczba płytek z daną literą są dostępne na stronie: http://www.pfs.org.pl/reguly.php
 
-## Wprowadzenie
+## Cel i opis projektu
+Celem projektu jest wykonanie gry SCRABBLE implementując ją z wykorzystaniem języka Python. Zrealizowany został z dużym naciskiem na stronę wizualną programu (duże znaczenie ma doświadczenie użytkownika). 
+
+Projekt jest implementacją gry planszowej SCRABBLE. Gracz rywalizuje z Botem. Zgodnie z zasadami gry, gracz może ułożyć słowa na następujące sposoby:
+<br>
+1. Dołożenie jednej lub kilku płytek na początku lub na końcu słowa już znajdującego się na planszy, albo też zarówno na początku, jak i na końcu takiego słowa.
+2. Ułożenie słowa pod kątem prostym do słowa znajdującego się na planszy. Nowe słowo musi wykorzystywać jedną z liter słowa leżącego na planszy.
+3. Ułożenie całego słowa równolegle do słowa już istniejącego w taki sposób, by stykające się płytki także tworzyły całe słowa.
+4. Nowe słowo może także dodać literę do istniejącego słowa.
+5. Ostatnia możliwość to „mostek” między dwiema lub więcej literami.
+
+Bot ma za zadanie symulować drugiego gracza. Może on ułożyć słowo na 1, 2 i 4 sposób. W przypadku nie znalezienia odpowiedniego słowa, wymienia on stojak. Założenie jest następujące: bot nie może być idealny! Nie jest to więc mile widziane, aby za każdym razem ułożył on prawidłowe słowo.
+
+## Co to SCRABBLE?
 SCRABBLE to gra słowna. Polega na układaniu na planszy powiązanych ze sobą słów przy użyciu płytek z literami o różnej wartości - przypomina to budowanie krzyżówki. Celem gry jest uzyskanie jak najwyższego wyniku. Każdy gracz stara się uzyskać jak najwięcej punktów układając słowa w taki sposób, by wykorzystać wartość liter i premiowane pola na planszy. Zależnie od umiejętności graczy, suma uzyskanych w grze punktów może osiągnąć od 400 do 800, albo nawet więcej.
 
 ## Instrukcja rozgrywki
@@ -29,16 +42,10 @@ Gracz może wymienić wszystkie płytki, jeśli nie wyłożył jeszcze żadnej p
 Gracz może opuścić kolejkę maksymalnie dwukrotnie, inaczej gra się kończy.
 
 ### Tworzenie nowych słów
-Nowe słowa można tworzyć na pięć sposobów:
-1. Dołożenie jednej lub kilku płytek na początku lub na końcu słowa już znajdującego się na planszy, albo też zarówno na początku, jak i na końcu takiego słowa.
-2. Ułożenie słowa pod kątem prostym do słowa znajdującego się na planszy. Nowe słowo musi wykorzystywać jedną z liter słowa leżącego na planszy.
-3. Ułożenie całego słowa równolegle do słowa już istniejącego w taki sposób, by stykające się płytki także tworzyły całe słowa.
-4. Nowe słowo może także dodać literę do istniejącego słowa.
-5. Ostatnia możliwość to „mostek” między dwiema lub więcej literami.
+Gracz ma możliwość stworzenia słów, tak jak zostało to wspomniane w opisie projektu.
 
 ### Zakończenie gry
-Gra kończy się, gdy jeden z graczy nie ma już żadnych płytek na stojaku. Gra kończy się także wtedy, gdy bot nie znajdzie żadnego możliwego ruchu i wszyscy gracze opuszczą dwie kolejki z rzędu.
-Uwaga: Opuszczenie przez wszystkich graczy dwu kolejek z rzędu kończy grę niezależnie od tego jak wiele płytek pozostało jeszcze w woreczku i na stojakach.
+Gra kończy się, gdy jeden z graczy nie ma już żadnych płytek na stojaku. Opuszczenie przez wszystkich graczy dwu kolejek z rzędu kończy grę niezależnie od tego jak wiele płytek pozostało jeszcze w woreczku i na stojakach.
 
 
 ### Dokładne zasady
@@ -57,11 +64,20 @@ Uwaga: Opuszczenie przez wszystkich graczy dwu kolejek z rzędu kończy grę nie
 | E | Zakończenie rozgrywki |
 
 ## Klasy
+ - Game <br>
+ Klasa mająca za zadanie zarządzanie aktualną instancją gry.
+
  - Board <br>
-Zarządza planszą. Jest odpowiedzialna za sprawdzanie poprawności ruchów graczy, określaniu koordynatów danego słowa, za przechowywanie wszystkich słów znajdujących się na planszy. Zarządza również woreczkiem z literami możliwymi do użycia przez graczy.
+ Zarządza planszą, w tym rysowaniem jej elementów, jak i wizualnej strony stojaka z literami. 
+
+ - LettersBag <br>
+ Klasa zarządza woreczkiem z literami. Umożliwia wyjmowanie i wkładanie liter do niego, jak również losowy wybór płytki (symulujący rzeczywistość)
 
  - Tile<br>
  Klasa dziedziczy po wbudowanej klasie z modułu pygame (pygame.sprite.Sprite), która zarządza widocznymi obiektami gry. Posiada atrybuty: letter i position.
+
+ - Move <br>
+ Zarządza ruchem graczy, w tym: kliknięciami myszki, ułożeniem słów na planszy i ich poprawnością. 
 
  - Player<br>
  Zarządza graczem. Odpowiedzialna za przechowywanie informacji o liście słów, stojaka na płytki oraz imienia konkretnego gracza. Co więcej właśnie w niej obecna jest funkcja zwracająca ostateczny wynik danego gracza.
@@ -104,3 +120,6 @@ Użyty do wykonania apektu wizualnego gry.
 W grze zostały użyte dwie czcionki GoogleFonts:
 - [Rubik Doodle Shadow](https://fonts.google.com/specimen/Rubik+Doodle+Shadow?query=rubik)
 - [Rubik](https://fonts.google.com/specimen/Rubik?query=rubik)
+
+## Refleksja
+To be done...
