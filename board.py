@@ -31,6 +31,9 @@ class Board:
     bag with its amount and value
     :type letters_bag: dict
 
+    :param current_word: dict containing current word made by player
+    :type current_word: dict
+
     """
 
     def __init__(self):
@@ -210,18 +213,24 @@ class Board:
             elif in_group:
                 count += 1
                 in_group = False
+            else:
+                count += 1
+                in_group = False
 
         return count
 
-    def valid_added_word(self, row_key, col_key):
+    def valid_added_word(self):
         """
         Checks if the placement of added word
         is correct
         """
+        row_key = [item[0] for item in self.current_word.keys()]
+        col_key = [item[1] for item in self.current_word.keys()]
         space_coord = self.addword()
         position = self.word_info_position()
         coordinates = row_key if position == "vertical" else col_key
-        if self.space_count(coordinates) == 1:
+        space_count = self.space_count(coordinates)
+        if space_count == 1:
             if position == "vertical" and all(
                 self.board[row][space_coord[1]] != ""
                 for row in range(space_coord[0][0], space_coord[0][1])
@@ -232,7 +241,7 @@ class Board:
                 for col in range(space_coord[1][0], space_coord[1][1])
             ):
                 return True
-        elif self.space_count(coordinates) == 0 and not all(
+        elif space_count == 0 and not all(
             self.not_touching(
                 row_key[0], col_key[0], position, "".join(self.current_word.values())
             )
@@ -298,29 +307,7 @@ class Board:
                 player.reinstate_rack(self.current_word[pos])
         self.current_word_empty()
 
-    def alone_tile(self, pos):
-        """
-        Checks if the tile is alone. You cannot place a single tile, as
-        a word is scrabble
-        """
-        let_row, let_col = pos
-        if (
-            (
-                (let_row + 1 < len(self.board))
-                and (self.board[let_row + 1][let_col] != "")
-            )
-            or (let_row - 1 >= 0 and self.board[let_row - 1][let_col] != "")
-            or (let_col - 1 >= 0 and self.board[let_row][let_col - 1] != "")
-            or (
-                let_col + 1 < len(self.board[let_row])
-                and self.board[let_row][let_col + 1] != ""
-            )
-        ):
-            return False
-        else:
-            return True
-
-    def not_touching(self, row_start, col_start, position, word):
+    def not_touching(self, row_start, col_start, position="horizontal", word=" "):
         """
         Checks if the word is alone
         """
@@ -383,6 +370,7 @@ class Board:
                     valid_con.append(True)
                 else:
                     valid_con.append(False)
+        print(valid_con)
         return valid_con
 
     def colid(self, board_sprite, current_next_pos):
@@ -477,11 +465,10 @@ class Board:
                     for let in blank_list:
                         letter_list[e] = let
                         checked_word = "".join(letter_list).lower()
-                        if checked_word not in words:
-                            if let != blank_list[-1]:
-                                continue
-                            else:
-                                return False
+                        if checked_word not in words and let != blank_list[-1]:
+                            continue
+                        elif checked_word not in words and let == blank_list[-1]:
+                            return False
                         return True
                 else:
                     continue
@@ -509,12 +496,11 @@ class Board:
         for word in self.word_in_board():
             count = self.word_in_board().count(word)
             word_amount = self.word_list.count(word)
-            if count == 1:
-                if word in self.word_list:
-                    continue
-                else:
-                    self.update_word_list(word)
-                    player.update_words(word)
+            if count == 1 and word in self.word_list:
+                continue
+            elif count == 1 and word not in self.word_list:
+                self.update_word_list(word)
+                player.update_words(word)
             else:
                 while count != word_amount:
                     self.update_word_list(word)
@@ -553,6 +539,7 @@ class Board:
                     find_word.append(element)
                     if "".join(find_word) == word:
                         start_row = row - len(find_word) + 1
+                        # poprawić
                         if self.not_touching(start_row, col, "vertical", word):
                             pos = ["vertical", start_row, col]
                             return pos
@@ -574,22 +561,23 @@ class Board:
         return False
 
     def remove_added_to(self):
-        if self.word_list and len(self.current_word) > 1:
-            if len(self.word_list[-1]) > len(self.current_word.values()):
-                previous_coord = self.addword()
-                prev_word = ""
-                if self.word_info_position() == "vertical":
-                    coords = previous_coord[0]
-                    col = previous_coord[1]
-                    print(coords, col)
-                    for row in range(coords[0], coords[1]):
-                        prev_word += self.board[row][col]
-                else:
-                    coords = previous_coord[1]
-                    row = previous_coord[0]
-                    print(coords)
-                    for col in range(coords[0], coords[1]):
-                        prev_word += self.board[row][col]
+        if (
+            self.word_list
+            and len(self.current_word) > 1
+            and len(self.word_list[-1]) > len(self.current_word.values())
+        ):
+            previous_coord = self.addword()
+            prev_word = ""
+            if self.word_info_position() == "vertical":
+                coords = previous_coord[0]
+                col = previous_coord[1]
+                for row in range(coords[0], coords[1]):
+                    prev_word += self.board[row][col]
+            else:
+                coords = previous_coord[1]
+                row = previous_coord[0]
+                for col in range(coords[0], coords[1]):
+                    prev_word += self.board[row][col]
 
-                    if prev_word in self.word_list:
-                        self.word_list.remove(prev_word)
+                if prev_word in self.word_list:
+                    self.word_list.remove(prev_word)
