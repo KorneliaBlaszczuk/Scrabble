@@ -1,8 +1,12 @@
 class Move:
+    """
+    Class Move
+    Manages logic - valid positions
+    """
+
     # najpierw patrzymy na położenie, a potem na valid_words
     def __init__(self):
         self.click = []
-        self.current_word = {}
 
     def click_handling(self, player, board, board_sprite):
         """
