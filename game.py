@@ -166,7 +166,7 @@ class ScrabbleGame:
                         player_name = user_text
                         run = False
 
-                    elif active:
+                    elif active and event.key != pygame.K_BACKSPACE:
                         user_text += event.unicode
 
             # if the player write a name containing 10 symbols, the game starts
