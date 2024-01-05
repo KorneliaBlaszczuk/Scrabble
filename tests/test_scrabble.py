@@ -16,18 +16,18 @@ Class Player Tests
 
 def test_player():
     player = Player("Ben")
-    assert player.name() == "Ben"
-    assert player.words() == []
-    assert player.rack() == ["", "", "", "", "", "", ""]
+    assert player.name == "Ben"
+    assert player.words == []
+    assert player.rack == ["", "", "", "", "", "", ""]
 
 
 def test_player_update_words():
     player = Player("Ben")
-    assert player.name() == "Ben"
-    assert player.words() == []
-    assert player.rack() == ["", "", "", "", "", "", ""]
+    assert player.name == "Ben"
+    assert player.words == []
+    assert player.rack == ["", "", "", "", "", "", ""]
     player.update_words("MAMA")
-    assert player.words() == ["MAMA"]
+    assert player.words == ["MAMA"]
 
 
 def test_player_update_rack(monkeypatch):
@@ -35,10 +35,10 @@ def test_player_update_rack(monkeypatch):
     player = Player("Ben", rack=rack)
     letters_bag = LettersBag()
 
-    assert player.rack() == ["C", "", "F", "G", "J", "L", "Z"]
+    assert player.rack == ["C", "", "F", "G", "J", "L", "Z"]
     monkeypatch.setattr("random.choice", lambda x: "A")
     player.updating_rack(letters_bag)
-    assert player.rack() == ["C", "A", "F", "G", "J", "L", "Z"]
+    assert player.rack == ["C", "A", "F", "G", "J", "L", "Z"]
 
 
 def test_player_update_rack_empty():
@@ -48,8 +48,8 @@ def test_player_update_rack_empty():
 
     player.updating_rack(letters)
     for i in range(len(rack)):
-        assert player.rack()[i] != ""
-        assert player.rack()[i] in letters.letters_bag
+        assert player.rack[i] != ""
+        assert player.rack[i] in letters.letters_bag
 
 
 def test_player_update_no_empty(monkeypatch):
@@ -57,10 +57,10 @@ def test_player_update_no_empty(monkeypatch):
     player = Player("Ben", rack=rack)
     board = Board()
 
-    assert player.rack() == ["D", "C", "Z", "H", "L", "W", " "]
+    assert player.rack == ["D", "C", "Z", "H", "L", "W", " "]
     monkeypatch.setattr("random.choice", lambda x: "A")
     player.updating_rack(board)
-    assert player.rack() == ["D", "C", "Z", "H", "L", "W", " "]
+    assert player.rack == ["D", "C", "Z", "H", "L", "W", " "]
 
 
 def test_update_updating_bag(monkeypatch):
@@ -72,10 +72,10 @@ def test_update_updating_bag(monkeypatch):
     monkeypatch.setattr("random.choice", lambda x: next(letter_generator))
     player.updating_rack(letters_bag)
     for i in range(len(rack)):
-        letter = player.rack()[i]
+        letter = player.rack[i]
         assert letter != ""
         assert (
-            letters[letter][0] - player.rack().count(letter)
+            letters[letter][0] - player.rack.count(letter)
             == letters_bag.letters_bag[letter][0]
         )
         assert letter in letters_bag.all_letters
@@ -84,21 +84,21 @@ def test_update_updating_bag(monkeypatch):
 def test_player_reinstate_rack():
     player = Player("Ben")
     player.reinstate_rack("A")
-    assert player.rack() == ["A", "", "", "", "", "", ""]
+    assert player.rack == ["A", "", "", "", "", "", ""]
 
 
 def test_player_reinstate_two_empty():
     rack = ["A", "C", "", "H", "L", "", " "]
     player = Player("Ben", rack=rack)
     player.reinstate_rack("A")
-    assert player.rack() == ["A", "C", "A", "H", "L", "", " "]
+    assert player.rack == ["A", "C", "A", "H", "L", "", " "]
 
 
 def test_player_reinstate_no_empty():
     rack = ["D", "C", "Z", "H", "L", "W", " "]
     player = Player("Ben", rack=rack)
     player.reinstate_rack("A")
-    assert player.rack() == ["D", "C", "Z", "H", "L", "W", " "]
+    assert player.rack == ["D", "C", "Z", "H", "L", "W", " "]
 
 
 def test_is_rack_used_false():
@@ -118,10 +118,10 @@ def test_replace_rack(monkeypatch):
     player = Player("Ben", rack=rack)
     letters_bag = LettersBag()
 
-    assert player.rack() == ["C", "A", "F", "G", "J", "L", "Z"]
+    assert player.rack == ["C", "A", "F", "G", "J", "L", "Z"]
     monkeypatch.setattr("random.choice", lambda x: "A")
     player.replace_rack(letters_bag)
-    assert player.rack() == ["A", "A", "A", "A", "A", "A", "A"]
+    assert player.rack == ["A", "A", "A", "A", "A", "A", "A"]
 
 
 def test_replace_rack_used():
@@ -130,7 +130,7 @@ def test_replace_rack_used():
     assert player.is_rack_used() is True
     board = Board()
     player.replace_rack(board)
-    assert player.rack() == rack
+    assert player.rack == rack
 
 
 def test_replace_updating_bag(monkeypatch):
@@ -142,11 +142,11 @@ def test_replace_updating_bag(monkeypatch):
     monkeypatch.setattr("random.choice", lambda x: next(letter_generator))
     player.updating_rack(letters_bag)
     for i in range(len(rack)):
-        letter = player.rack()[i]
+        letter = player.rack[i]
         assert letter != ""
         assert (
             letters[letter][0]
-            == player.rack().count(letter) + letters_bag.letters_bag[letter][0]
+            == player.rack.count(letter) + letters_bag.letters_bag[letter][0]
         )
         assert letter in letters_bag.all_letters
 
@@ -653,7 +653,7 @@ def test_word_list_add():
     board.update_board()
     board.update_word_list("TATA")
     board.word_lists_adding(player)
-    assert player.words() == ["TA"]
+    assert player.words == ["TA"]
     assert board.word_list == ["TATA", "TA"]
 
 
@@ -700,9 +700,9 @@ Class Bot Tests
 
 def test_bot():
     bot = Bot()
-    assert bot.name() == "Bot"
-    assert bot.words() == []
-    assert bot.rack() == ["", "", "", "", "", "", ""]
+    assert bot.name == "Bot"
+    assert bot.words == []
+    assert bot.rack == ["", "", "", "", "", "", ""]
 
 
 def test_valid_first_word():
@@ -851,7 +851,7 @@ def test_added_letters_prefix_suffix():
     }
 
 
-def test_make_prefix_and_sufix():
+def test_make_prefix_and_suffix():
     bot = Bot()
     added = {
         (0, 0): "S",
@@ -860,7 +860,7 @@ def test_make_prefix_and_sufix():
         (5, 1): "N",
         (6, 1): "T",
     }
-    result = bot.make_prefix_and_sufix(added)
+    result = bot.make_prefix_and_suffix(added)
     assert result == (["S"], ["D", "E", "N", "T"])
 
 
@@ -872,21 +872,21 @@ def test_make_no_prefix():
         (5, 1): "N",
         (6, 1): "T",
     }
-    result = bot.make_prefix_and_sufix(added)
+    result = bot.make_prefix_and_suffix(added)
     assert result == ([], ["D", "E", "N", "T"])
 
 
-def test_make_no_sufix():
+def test_make_no_suffix():
     bot = Bot()
     added = {(0, 0): "S"}
-    result = bot.make_prefix_and_sufix(added)
+    result = bot.make_prefix_and_suffix(added)
     assert result == (["S"], [])
 
 
 def test_make_empty():
     bot = Bot()
     added = {}
-    result = bot.make_prefix_and_sufix(added)
+    result = bot.make_prefix_and_suffix(added)
     assert result == ([], [])
 
 
@@ -956,7 +956,7 @@ def test_made_word_info():
         (5, 1): "N",
         (6, 1): "T",
     }
-    result = bot.make_prefix_and_sufix(added)
+    result = bot.make_prefix_and_suffix(added)
     assert result == (["S"], ["D", "E", "N", "T"])
 
 
@@ -1019,7 +1019,7 @@ def test_valid_new():
     board.create_board()
     choice = {
         "prefix": [],
-        "sufix": [7, 6, "horizontal", "O"],
+        "suffix": [7, 6, "horizontal", "O"],
         "old_word": "T",
         "new_word": "TO",
         "mode": "new",
@@ -1039,7 +1039,7 @@ def test_added_valid_new():
     board.update_board()
     choice = {
         "prefix": [7, 6, "horizontal", "E"],
-        "sufix": [],
+        "suffix": [],
         "old_word": "TO",
         "new_word": "ETO",
         "mode": "added",
@@ -1059,7 +1059,7 @@ def test_not_valid_new():
     board.update_board()
     choice = {
         "prefix": [6, 8, "vertical", "T"],
-        "sufix": [],
+        "suffix": [],
         "old_word": "O",
         "new_word": "TO",
         "mode": "new",
