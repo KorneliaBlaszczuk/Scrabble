@@ -2,7 +2,7 @@
 
 ### Autor
 <strong>Kornelia Błaszczuk</strong> <br>
-Studentka Informatyki I stopnia na Politechnice Warszawskiej <br>
+Studentka 1 Semestru Informatyki I stopnia na Politechnice Warszawskiej <br>
 <strong>Numer Indeksu:</strong> 331361 <br>
 <strong>Mail:</strong> 01187210@pw.edu.pl <br>
 
@@ -109,12 +109,18 @@ Bot próbuje ułożyć akceptowalne słowo maksymalnie 4 razy, po czym wymienia 
 
 ## Użyte moduły i czcionki
 ### Moduły
-- [RE](https://docs.python.org/3/library/re.html?highlight=re#module-re) <br>
+- <strong>[re](https://docs.python.org/3/library/re.html?highlight=re#module-re)</strong> <br>
 Użyty w konstrukcji bota do znajdowania nowych słów.
-- [Random](https://docs.python.org/3/library/random.html?highlight=random#module-random) <br>
+- <strong>[random](https://docs.python.org/3/library/random.html?highlight=random#module-random)</strong> <br>
 Moduł wykorzystany do stworzenia bota z daną losowością.
-- [PyGame](https://www.pygame.org/docs/ref/pygame.html) <br>
+- <strong>[PyGame](https://www.pygame.org/docs/ref/pygame.html)</strong> <br>
 Użyty do wykonania apektu wizualnego gry.  
+- <strong>[time](https://docs.python.org/3/library/time.html?highlight=time#module-time)</strong>
+Moduł został użyty celu lepszej symulacji ruchu bota. Jego runda jest widoczna dla gracza, dzięki użyciu funkcji sleep() z tego modułu.
+- <strong>[sys](https://docs.python.org/3/library/sys.html?highlight=sys#module-sys)</strong> <br>
+Wykorzystywane podczas zamykania ekranu gry.
+- <strong>[pytest](https://docs.pytest.org/en/7.1.x/contents.html)</strong> <br>
+Użyty podczas testów.
 
 ### Czcionki 
 W grze zostały użyte dwie czcionki GoogleFonts:
