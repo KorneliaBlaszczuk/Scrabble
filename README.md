@@ -3,8 +3,8 @@
 ### Autor
 <strong>Kornelia Błaszczuk</strong> <br>
 Studentka Informatyki I stopnia na Politechnice Warszawskiej <br>
-Numer Indeksu: 331361 <br>
-Mail: 01187210@pw.edu.pl <br>
+<strong>Numer Indeksu:</strong> 331361 <br>
+<strong>Mail:</strong> 01187210@pw.edu.pl <br>
 
 ## Temat projektu
 Przygotuj program który pozwoli grać w grę scrabble.
@@ -64,25 +64,25 @@ Gra kończy się, gdy jeden z graczy nie ma już żadnych płytek na stojaku. Op
 | E | Zakończenie rozgrywki |
 
 ## Klasy
- - Game <br>
+ - <strong>Game</strong> <br>
  Klasa mająca za zadanie zarządzanie aktualną instancją gry.
 
- - Board <br>
+ - <strong>Board</strong> <br>
  Zarządza planszą, w tym rysowaniem jej elementów, jak i wizualnej strony stojaka z literami. 
 
- - LettersBag <br>
+ - <strong>LettersBag</strong> <br>
  Klasa zarządza woreczkiem z literami. Umożliwia wyjmowanie i wkładanie liter do niego, jak również losowy wybór płytki (symulujący rzeczywistość)
 
- - Tile<br>
+ - <strong>Tile</strong><br>
  Klasa dziedziczy po wbudowanej klasie z modułu pygame (pygame.sprite.Sprite), która zarządza widocznymi obiektami gry. Posiada atrybuty: letter i position.
 
- - Move <br>
+ - <strong>Move</strong> <br>
  Zarządza ruchem graczy, w tym: kliknięciami myszki, ułożeniem słów na planszy i ich poprawnością. 
 
- - Player<br>
+ - <strong>Player</strong><br>
  Zarządza graczem. Odpowiedzialna za przechowywanie informacji o liście słów, stojaka na płytki oraz imienia konkretnego gracza. Co więcej właśnie w niej obecna jest funkcja zwracająca ostateczny wynik danego gracza.
 
- - Bot <br>
+ - <strong>Bot</strong> <br>
  Jest klasą, która dziedziczy po Player. Oprócz funkcjonalności powyższej klasy, posiada ona też takie, które pozwalają na to, że bot jest pełnoprawnym graczem z własnymi decyzjami. Bot, tak jak gracz, może ułożyć nowe słowo, dodać do już istniejącego lub wymienić swój stojak z literami. 
 
 ## Rozgrywka i przedstawienie aspektu wizualnego
