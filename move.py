@@ -5,7 +5,7 @@ class Move:
     Manages logic - valid positions
 
     :param click: list of coordinates where player clicked
-    :type click: list of tuples
+    :type click: list of tuples representing rows
     """
 
     def __init__(self):
@@ -16,10 +16,16 @@ class Move:
         return self._click
 
     def update_click(self, coord):
+        """
+        Updates list of coordinates of the click
+        """
         self.click.append(coord)
         return self.click
 
     def empty_click(self):
+        """
+        Empties the click list
+        """
         self.click.clear()
         return self.click
 
@@ -47,6 +53,11 @@ class Move:
             self.click.clear()
 
     def valid_placement(self, board, board_sprite, player):
+        """
+        Manages validation of the placement. If it's correct nothing happens
+        in this function. The game goes on. In case of the opposite, we
+        execute not_valid_action.
+        """
         if len(board.word_list) == 0 and not any(
             key == (7, 7) for key in board.current_word.keys()
         ):
