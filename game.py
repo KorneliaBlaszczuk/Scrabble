@@ -35,17 +35,28 @@ class ScrabbleGame:
         self.WIN = pygame.display.set_mode((WIDTH, HEIGHT + 2 * EXTRA_SPACE))
         pygame.display.set_caption("SCRABBLE")
         pygame.font.init()
-        self.current_click = []
 
         self._turn = "Bot"
-        self.round = 1
+        self._round = 1
 
-        self.player_score = 0
-        self.bot_score = 0
+        self._player_score = 0
+        self._bot_score = 0
 
     @property
     def turn(self):
         return self._turn
+
+    @property
+    def round(self):
+        return self._round
+
+    @property
+    def player_score(self):
+        return self._player_score
+
+    @property
+    def bot_score(self):
+        return self._bot_score
 
     def update_turn(self, player):
         if self.turn == "Bot":
@@ -55,8 +66,8 @@ class ScrabbleGame:
         return self._turn
 
     def update_round(self):
-        self.round += 1
-        return self.round
+        self._round += 1
+        return self._round
 
     def start_win(self):
         """
@@ -338,8 +349,10 @@ class ScrabbleGame:
                                 letter = Tile(current_letters, (x, y))
                                 rack_sprite.add(letter)
                                 x += SQUARE_SIZE
+
                         x = extra_space_x
                         y = extra_space_y + EXTRA_SPACE // 2
+
                         move.click.clear()
 
                 # If enter the word is checked and then bot turn
