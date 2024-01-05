@@ -57,11 +57,11 @@ Gra kończy się, gdy jeden z graczy nie ma już żadnych płytek na stojaku. Op
 
 |   Klawisz  |       Akcja           |
 | ---------- | ---------------------- |
-| SPACE | Rozpoczęcie gry |
-|    ENTER   |    Zatwierdzenie słowa; przejście do kolejki bota  /   Zatwierdzenie imienia  |
-|      R     |    Wymiana płytek    |
-|      S     |    Opuszczenie kolejki |
-| E | Zakończenie rozgrywki |
+| <strong>SPACE</strong> | Rozpoczęcie gry |
+|    <strong>ENTER</strong>   |    Zatwierdzenie słowa; przejście do kolejki bota  /   Zatwierdzenie imienia  |
+|      <strong>R</strong>     |    Wymiana płytek    |
+|      <strong>S</strong>     |    Opuszczenie kolejki |
+| E | Zakończenie rozgrywki</strong> |
 
 ## Klasy
  - <strong>Game</strong> <br>
@@ -118,8 +118,8 @@ Użyty do wykonania apektu wizualnego gry.
 
 ### Czcionki 
 W grze zostały użyte dwie czcionki GoogleFonts:
-- [Rubik Doodle Shadow](https://fonts.google.com/specimen/Rubik+Doodle+Shadow?query=rubik)
-- [Rubik](https://fonts.google.com/specimen/Rubik?query=rubik)
+- <strong>[Rubik Doodle Shadow](https://fonts.google.com/specimen/Rubik+Doodle+Shadow?query=rubik)</strong>
+- <strong>[Rubik](https://fonts.google.com/specimen/Rubik?query=rubik)</strong>
 
 ## Refleksja
 To be done...
