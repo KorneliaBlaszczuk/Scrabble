@@ -1,6 +1,5 @@
 from player import Player
 from board import Board
-from letters_bag import letters
 from constants import SQUARE_SIZE
 from bot import Bot
 import pygame
@@ -706,8 +705,14 @@ def test_bot():
     assert bot.rack() == ["", "", "", "", "", "", ""]
 
 
-def test_first_word():
-    pass
+def test_valid_first_word():
+    with open("slowa.txt", "r", encoding="utf-8") as file:
+        content = file.read()
+        valid_words = content.split()
+    rack = ["A", "A", "M", "Z", "W", "R", "S"]
+    bot = Bot(rack=rack)
+    result = bot.valid_first_word(valid_words)
+    assert "".join(result)
 
 
 def test_valid_new_word():
@@ -825,7 +830,7 @@ def test_add_to_word_none():
 def test_added_letters():
     bot = Bot()
     result = bot.added_letters("mama", "imama")
-    assert result == {(0, 0): "i"}
+    assert result == {(0, 0): "I"}
 
 
 def test_added_letters_no():
@@ -838,12 +843,51 @@ def test_added_letters_prefix_suffix():
     bot = Bot()
     result = bot.added_letters("tu", "student")
     assert result == {
-        (0, 0): "s",
-        (3, 1): "d",
-        (4, 1): "e",
-        (5, 1): "n",
-        (6, 1): "t",
+        (0, 0): "S",
+        (3, 1): "D",
+        (4, 1): "E",
+        (5, 1): "N",
+        (6, 1): "T",
     }
+
+
+def test_make_prefix_and_sufix():
+    bot = Bot()
+    added = {
+        (0, 0): "S",
+        (3, 1): "D",
+        (4, 1): "E",
+        (5, 1): "N",
+        (6, 1): "T",
+    }
+    result = bot.make_prefix_and_sufix(added)
+    assert result == (["S"], ["D", "E", "N", "T"])
+
+
+def test_make_no_prefix():
+    bot = Bot()
+    added = {
+        (3, 1): "D",
+        (4, 1): "E",
+        (5, 1): "N",
+        (6, 1): "T",
+    }
+    result = bot.make_prefix_and_sufix(added)
+    assert result == ([], ["D", "E", "N", "T"])
+
+
+def test_make_no_sufix():
+    bot = Bot()
+    added = {(0, 0): "S"}
+    result = bot.make_prefix_and_sufix(added)
+    assert result == (["S"], [])
+
+
+def test_make_empty():
+    bot = Bot()
+    added = {}
+    result = bot.make_prefix_and_sufix(added)
+    assert result == ([], [])
 
 
 def test_valid_add_position():
@@ -882,6 +926,147 @@ def test_valid_add_edge():
     assert bot.valid_add_pos(board, 14, 13, "horizontal", "AM")
 
 
+def test_word_blank():
+    bot = Bot()
+    blank_find = ("imama", "ma  ", "mama")
+    result = bot.word_blank(blank_find)
+    assert result == "ima  "
+
+
+def test_word_blank_no():
+    bot = Bot()
+    blank_find = ""
+    result = bot.word_blank(blank_find)
+    assert result == ""
+
+
+def test_word_blank_no_prefix():
+    bot = Bot()
+    blank_find = ("aaa", "a ", "aa")
+    result = bot.word_blank(blank_find)
+    assert result == "a a"
+
+
+def test_made_word_info():
+    bot = Bot()
+    added = {
+        (0, 0): "S",
+        (3, 1): "D",
+        (4, 1): "E",
+        (5, 1): "N",
+        (6, 1): "T",
+    }
+    result = bot.make_prefix_and_sufix(added)
+    assert result == (["S"], ["D", "E", "N", "T"])
+
+
+def test_added_info():
+    rack = ["W", "S", "E"]
+    bot = Bot(rack=rack)
+    board = Board()
+    board.create_board()
+    board.current_word_update((7, 7), "T")
+    board.current_word_update((7, 8), "O")
+    board.update_word_list("TO")
+    board.update_board()
+    with open("slowa.txt", "r", encoding="utf-8") as file:
+        content = file.read()
+        words = content.split()
+    assert bot.added_info(board, words, "added")
+
+
+def test_added_no_info():
+    bot = Bot()
+    board = Board()
+    board.create_board()
+    board.current_word_update((7, 7), "T")
+    board.current_word_update((7, 8), "O")
+    board.update_word_list("TO")
+    board.update_board()
+    with open("slowa.txt", "r", encoding="utf-8") as file:
+        content = file.read()
+        words = content.split()
+    assert not bot.added_info(board, words, "added")
+
+
+def test_word_finding_first():
+    bot = Bot(rack=["A", "A"])
+    board = Board()
+    board.create_board()
+    with open("slowa.txt", "r", encoding="utf-8") as file:
+        content = file.read()
+        words = content.split()
+    assert bot.word_finding(board, words)
+
+
+def test_word_finding_more():
+    bot = Bot(rack=["E"])
+    board = Board()
+    board.create_board()
+    board.current_word_update((7, 7), "T")
+    board.current_word_update((7, 8), "O")
+    board.update_word_list("TO")
+    board.update_board()
+    with open("slowa.txt", "r", encoding="utf-8") as file:
+        content = file.read()
+        words = content.split()
+    assert bot.word_finding(board, words)
+
+
+def test_valid_new():
+    bot = Bot(rack=["E"])
+    board = Board()
+    board.create_board()
+    choice = {
+        "prefix": [],
+        "sufix": [7, 6, "horizontal", "O"],
+        "old_word": "T",
+        "new_word": "TO",
+        "mode": "new",
+    }
+    bot.valid_new(board, choice)
+
+
+def test_added_valid_new():
+    bot = Bot(rack=["E"])
+    board = Board()
+    board.create_board()
+    board.current_word_update((7, 7), "T")
+    board.current_word_update((7, 8), "O")
+    board.update_word_list("TO")
+    board.update_board()
+    board.current_word_update((7, 5), "T")
+    board.update_board()
+    choice = {
+        "prefix": [7, 6, "horizontal", "E"],
+        "sufix": [],
+        "old_word": "TO",
+        "new_word": "ETO",
+        "mode": "added",
+    }
+    assert bot.valid_new(board, choice)
+
+
+def test_not_valid_new():
+    bot = Bot()
+    board = Board()
+    board.create_board()
+    board.current_word_update((7, 7), "T")
+    board.current_word_update((7, 8), "O")
+    board.update_word_list("TO")
+    board.update_board()
+    board.current_word_update((8, 8), "T")
+    board.update_board()
+    choice = {
+        "prefix": [6, 8, "vertical", "T"],
+        "sufix": [],
+        "old_word": "O",
+        "new_word": "TO",
+        "mode": "new",
+    }
+    assert not bot.valid_new(board, choice)
+
+
 def test_made_current_word_vertical():
     info = [10, 12, "vertical", "A"]
     bot = Bot()
@@ -892,105 +1077,6 @@ def test_made_current_word_horizontal():
     info = [10, 12, "horizantal", "A"]
     bot = Bot()
     assert bot.made_current_word(info) == {(10, 12): "A"}
-
-
-def test_attempts_no():
-    with open("slowa.txt", "r", encoding="utf-8") as file:
-        content = file.read()
-        words = content.split()
-    bot = Bot()
-    board = Board()
-    board.create_board()
-    result = bot.attempts(board, words)
-    assert not result  # we don't have handler so no words can be made
-
-
-def test_attempt(monkeypatch):
-    with open("slowa.txt", "r", encoding="utf-8") as file:
-        content = file.read()
-        words = content.split()
-    rack = ["A", "A", "M", "Z", "W", "R", "S"]
-    monkeypatch.setattr("random.choice", lambda x: "new")
-    bot = Bot(rack=rack)
-    board = Board()
-    board.create_board()
-    result = bot.attempts(board, words)
-    assert result
-
-
-def test_attempts_result_new(monkeypatch):
-    with open("slowa.txt", "r", encoding="utf-8") as file:
-        content = file.read()
-        words = content.split()
-    monkeypatch.setattr("random.choice", lambda x: "new")
-    rack = ["A", "A", "M", "Z", "W", "R", "S"]
-    bot = Bot(rack=rack)
-    board = Board()
-    board.create_board()
-    result = bot.attempts(board, words)
-    assert result["mode"] == "new"
-    assert sorted(result.keys()) == sorted(["info", "mode"])
-
-
-def test_attempts_add(monkeypatch):
-    with open("slowa.txt", "r", encoding="utf-8") as file:
-        content = file.read()
-        words = content.split()
-    monkeypatch.setattr("random.choice", lambda x: "add")
-    rack = ["A", "A", "M", "Z", "W", "R", "S"]
-    bot = Bot(rack=rack)
-    board = Board()
-    board.create_board()
-    all_words = {
-        (6, 5): "T",
-        (7, 5): "A",
-    }
-    board.update_board(all_words)
-    board.update_word_list("TA")
-    result = bot.attempts(board, words)
-    assert result["mode"] == "add"
-    assert sorted(result.keys()) == sorted(
-        ["prefix", "sufix", "old_word", "new_word", "mode"]
-    )
-
-
-def test_made_word(monkeypatch):
-    with open("slowa.txt", "r", encoding="utf-8") as file:
-        content = file.read()
-        words = content.split()
-    monkeypatch.setattr("random.choice", lambda x: "new")
-    rack = ["A", "A", "M", "Z", "W", "R", "S"]
-    bot = Bot(rack=rack)
-    board = Board()
-    board.create_board()
-    result = bot.made_word(board, words)
-    assert result
-
-
-def test_made_word_no(monkeypatch):
-    with open("slowa.txt", "r", encoding="utf-8") as file:
-        content = file.read()
-        words = content.split()
-    monkeypatch.setattr("random.choice", lambda x: "new")
-    rack = ["", "A", "", "", "", "", ""]
-    bot = Bot(rack=rack)
-    board = Board()
-    board.create_board()
-    result = bot.made_word(board, words)
-    assert not result
-
-
-def test_made_word_add_to_new(monkeypatch):
-    with open("slowa.txt", "r", encoding="utf-8") as file:
-        content = file.read()
-        words = content.split()
-    monkeypatch.setattr("random.choice", lambda x: "add")
-    rack = ["Z", "A", "", "", "", "", ""]
-    bot = Bot(rack=rack)
-    board = Board()
-    board.create_board()
-    result = bot.made_word(board, words)
-    assert result
 
 
 """
@@ -1031,7 +1117,8 @@ def game_instance():
 
 def test_start_win_displayed(game_instance):
     # Check if the window is displayed as expected
-    assert pygame.display.get_surface().get_at((WIDTH // 2, HEIGHT)) == (0, 0, 0, 255)
+    sequence = (WIDTH // 2, HEIGHT)
+    assert pygame.display.get_surface().get_at(sequence) == (0, 0, 0, 255)
 
     assert game_instance.player_score == 0
     assert game_instance.bot_score == 0
@@ -1048,7 +1135,8 @@ def test_win_displayed(game_instance):
         game_instance.start_win()
         mock_update.assert_called_once()
 
-    assert pygame.display.get_surface().get_at((WIDTH // 2, (HEIGHT // 2))) == (
+    sequence = (WIDTH // 2, (HEIGHT // 2))
+    assert pygame.display.get_surface().get_at(sequence) == (
         251,
         249,
         249,
