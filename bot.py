@@ -2,6 +2,7 @@ import random
 import re
 import time
 from player import Player
+from letters_bag import blank_list
 
 
 class Bot(Player):
@@ -18,6 +19,71 @@ class Bot(Player):
 
     def __init__(self, name="Bot", words=None, rack=None):
         super().__init__(name, words, rack)
+
+    def blank__on_rack_handling(self, word, old=""):
+        not_in_rack = {}
+        word = word.upper()
+        old = old.upper()
+        letter_list = [letter for letter in word]
+        blank_count = self.rack().count(" ")
+        if all(
+            (word.count(letter) <= self.rack().count(letter) + old.count(letter))
+            for letter in set(word)
+        ):
+            return letter_list
+        else:
+            not_in_rack = {
+                letter: word.count(letter)
+                - self.rack().count(letter)
+                - old.count(letter)
+                for letter in set(word)
+                if letter not in not_in_rack
+                and word.count(letter) > self.rack().count(letter) + old.count(letter)
+            }
+            all_count = sum(not_in_rack.values())
+
+            if all_count <= blank_count:
+                for e, letter in enumerate(word):
+                    if (
+                        letter in not_in_rack
+                        and word.count(letter) == not_in_rack[letter]
+                    ):
+                        letter_list[e] = " "
+                    elif letter in not_in_rack and not_in_rack[letter] != 0:
+                        letter_list[e] = " "
+                        not_in_rack[letter] -= 1
+                    else:
+                        letter_list[e] = letter
+                return letter_list
+
+    def blank_find(self, word, valid_words):
+        letter_list = list(word)
+        blank_indices = [i for i, letter in enumerate(word) if letter == " "]
+
+        if len(blank_indices) == 2:
+            # If there are two blanks, iterate through all combinations
+            for letter1 in blank_list:
+                for letter2 in blank_list:
+                    letter_list[blank_indices[0]] = letter1
+                    letter_list[blank_indices[1]] = letter2
+                    check_word = "".join(letter_list).lower()
+                    find = self.find_matching_choice(check_word, valid_words)
+                    if find:
+                        return find, word, check_word
+            # If no valid word is found, return False
+            return ""
+        else:
+            # If there is one blank, iterate through all possible replacements
+            for index in blank_indices:
+                for let in blank_list:
+                    letter_list[index] = let
+                    check_word = "".join(letter_list).lower()
+                    find = self.find_matching_choice(check_word, valid_words)
+                    if find:
+                        return find, word, check_word
+
+            # If no valid word is found, return False
+            return ""
 
     def valid_first_word(self, valid_words):
         """
@@ -113,6 +179,12 @@ class Bot(Player):
         random.shuffle(word_list)
         for word in word_list:
             word = word.lower()
+            if " " in word:
+                find = self.blank_find(word, valid_words)
+                matching_choice = self.word_blank(find)
+                if matching_choice == "":
+                    word = ""
+                return word, matching_choice
             matching_choice = self.find_matching_choice(word, valid_words)
             if matching_choice:
                 return word, matching_choice
@@ -137,6 +209,10 @@ class Bot(Player):
                         for letter in set(choice_letters)
                     ):
                         return choice
+                    else:
+                        choice = self.blank__on_rack_handling(element, word)
+                        if choice:
+                            return "".join(choice)
 
         return ""
 
@@ -148,7 +224,10 @@ class Bot(Player):
         """
         base_word_pres = 0
         new_letters = {}
-        position = re.search(original_word, modified_word).span()
+        original_word = original_word.upper()
+        modified_word = modified_word.upper()
+        print(original_word, modified_word)
+        position = re.search(original_word.upper(), modified_word.upper()).span()
         for e, letter in enumerate(modified_word):
             if e < position[0]:
                 new_letters[e, base_word_pres] = letter
@@ -158,6 +237,16 @@ class Bot(Player):
             else:
                 continue
         return new_letters
+
+    def make_prefix_and_sufix(self, added):
+        prefix = []
+        sufix = []
+        for ind, original_pres in added:
+            if original_pres == 0:
+                prefix.append(added[(ind, original_pres)])
+            else:
+                sufix.append(added[(ind, original_pres)])
+        return prefix, sufix
 
     def valid_add_pos(self, board, row_start, col_start, position, added):
         """
@@ -175,19 +264,32 @@ class Bot(Player):
             return True
         return False
 
-    def made_word_info(self, board, result, choice, added_let, position):
+    def word_blank(self, blank_find):
         prefix = []
         sufix = []
+        print(blank_find)
+        if blank_find == "":
+            return ""
+        new, with_blank, without_blank = blank_find
+        new = new.upper()
+        without_blank.upper()
+        letters = [letter for letter in new]
+        added = self.added_letters(without_blank, new)
+
+        prefix, sufix = self.make_prefix_and_sufix(added)
+
+        for e, letter in enumerate(with_blank):
+            if letter == " ":
+                letters[e + len(prefix)] = " "
+        return "".join(letters)
+
+    def made_word_info(self, board, result, choice, added_let, position):
         new_word = {}
 
         old_word, upd_word = result[0], result[1]
         coord = board.exist(result[0])
 
-        for ind, original_pres in added_let:
-            if original_pres == 0:
-                prefix.append(added_let[(ind, original_pres)])
-            else:
-                sufix.append(added_let[(ind, original_pres)])
+        prefix, sufix = self.make_prefix_and_sufix(added_let)
 
         if position == "horizontal" and (
             coord[2] - len(prefix) >= 0
@@ -291,7 +393,9 @@ class Bot(Player):
         )
 
         old_word, upd_word = result[0], result[1]
-        added = self.added_letters(result[0], result[1])
+        old_word.upper()
+        upd_word.upper()
+        added = self.added_letters(old_word, upd_word)
         if added:
             if board.exist(result[0]) is not False and len(old_word) == 1:
                 old_info = board.exist(self.new_word(board, valid_words)[1])
@@ -366,7 +470,6 @@ class Bot(Player):
                 return False
         if choice["sufix"]:
             row, col, position, added = choice["sufix"]
-            print(row, col, position, added)
             if (
                 position == "horizontal"
                 and self.valid_add_pos(board, row, col, position, added)
@@ -420,7 +523,7 @@ class Bot(Player):
         return current_word
 
     def attempts(self, board, valid_words, letters_bag):
-        tries = 10
+        tries = 5
         bot_choice = {}
         time.sleep(1)
         while tries > 0:
