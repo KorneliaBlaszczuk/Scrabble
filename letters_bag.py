@@ -81,6 +81,16 @@ blank_list = [
 
 
 class LettersBag:
+    """
+    Class LettersBag
+
+    Manages bag with letters used in game.
+
+    :param letters_bag: List of all the avaible letter tiles in the
+    bag with its amount and value
+    :type letters_bag: dict
+    """
+
     def __init__(self):
         self._letters_bag = letters.copy()
 
@@ -92,7 +102,7 @@ class LettersBag:
     def all_letters(self):
         return self.letters_bag.keys()
 
-    def choosing_letter(self):
+    def choosing_letter(self) -> str:
         """
         Returns a random value from a letters bag.
         Used in rack construction.
@@ -104,13 +114,22 @@ class LettersBag:
         chosen_letter = random.choice(all_letters) if all_letters else ""
         return chosen_letter
 
-    def taking_out(self, letter):
+    def taking_out(self, letter: str):
+        """
+        Updates a letters bag: subtracts 1 from the
+        amount of certain letter (given as an argument)
+        """
         letter_info = self.letters_bag[letter]
         new_info = (letter_info[0] - 1, letter_info[1])
         self.letters_bag[letter] = new_info
         return self.letters_bag
 
-    def put_back(self, letter):
+    def put_back(self, letter: str):
+        """
+        Updates a letters bag: adds 1 to the
+        amount of certain letter (given as an argument)
+        """
         letter_info = self.letters_bag[letter]
         new_info = (letter_info[0] + 1, letter_info[1])
         self.letters_bag[letter] = new_info
+        return self.letters_bag
