@@ -8,6 +8,7 @@ import pytest
 from unittest.mock import patch
 from constants import WIDTH, HEIGHT
 from letters_bag import LettersBag, letters
+from move import Move
 
 """
 Class Player Tests
@@ -1146,6 +1147,64 @@ def test_put_back():
     letters_bag = LettersBag()
     letters_bag.put_back("A")
     assert letters_bag.letters_bag["A"][0] - 1 == letters["A"][0]
+
+
+"""
+Class ScrabbleGame Tests
+"""
+
+
+def test_game():
+    game = ScrabbleGame()
+    assert game
+
+
+def test_game_atributes():
+    game = ScrabbleGame()
+    assert game.turn == "Bot"
+    assert game.round == 1
+    assert game.skip_count == 0
+    assert game.player_score == 0
+    assert game.bot_score == 0
+
+
+def test_update_turn():
+    game = ScrabbleGame()
+    assert game.turn == "Bot"
+    game.update_turn()
+    assert game.turn == "Player"
+
+
+def test_update_turn_player():
+    game = ScrabbleGame()
+    assert game.turn == "Bot"
+    game.update_turn()
+    assert game.turn == "Player"
+    game.update_turn()
+    assert game.turn == "Bot"
+
+
+def test_update_round():
+    game = ScrabbleGame()
+    assert game.round == 1
+    game.update_round()
+    assert game.round == 2
+
+
+def test_skip_count():
+    game = ScrabbleGame()
+    assert game.skip_count == 0
+    game.update_skip_count()
+    assert game.skip_count == 1
+
+
+def test_empty_skip_count():
+    game = ScrabbleGame()
+    assert game.skip_count == 0
+    game.update_skip_count()
+    assert game.skip_count == 1
+    game.empty_skip_count()
+    assert game.skip_count == 0
 
 
 @pytest.fixture
