@@ -31,8 +31,10 @@ class Tile(pygame.sprite.Sprite):
 
         self.rect = self.image.get_rect(topleft=position)
 
+    @property
     def letter(self):
         return self._letter
 
+    @property
     def position(self):
         return self._position
