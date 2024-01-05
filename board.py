@@ -32,7 +32,7 @@ class Board:
     """
 
     def __init__(self):
-        self.board = []
+        self._board = []
         self._word_list = []
         self.current_word = {}
 
@@ -40,9 +40,31 @@ class Board:
     def word_list(self):
         return self._word_list
 
+    @property
+    def board(self):
+        return self._board
+
+    def empty_word_list(self):
+        self.word_list.clear()
+        return self.word_list
+
+    def remove_from_word_list(self, word):
+        self.word_list.remove(word)
+        return self.word_list
+    
+    def update_word_list(self, word):
+        """
+        Appends a word list
+        """
+        self.word_list.append(word)
+        return self.word_list
+
     def sort_current_word(self):
-        row_key = [item[0] for item in self.current_word.keys()]
-        col_key = [item[1] for item in self.current_word.keys()]
+        """
+        Function that sorts current word
+        """
+        row_key, col_key = zip(*self.current_word.keys())
+
         if all(x == row_key[0] for x in row_key):
             sorted_word = dict(
                 sorted(
@@ -61,13 +83,20 @@ class Board:
             self.current_word = sorted_word
         else:
             return False
+
         return self.current_word
 
     def current_word_update(self, coord, letter):
+        """
+        Updates current word
+        """
         self.current_word[coord] = letter
         return self.current_word
 
     def current_word_empty(self):
+        """
+        Empties current word
+        """
         self.current_word.clear()
         return self.current_word
 
@@ -100,13 +129,6 @@ class Board:
             self.board[row][col] = ""
         return self.board
 
-    def update_word_list(self, word):
-        """
-        Appends a word list
-        """
-        self.word_list.append(word)
-        return self.word_list
-
     def draw_rack(self, rack, rack_sprite):
         """
         Draw tiles on the player's rack
@@ -121,11 +143,11 @@ class Board:
                 rack_sprite.add(letter_title)
                 x += SQUARE_SIZE
 
-    def draw_tiles(self, board_sprite, current_letter, pos):
+    def draw_tiles(self, board_sprite, current_letter, position):
         """
         Draw tile on the board
         """
-        row, col = pos
+        row, col = position
         letter_tile = Tile(current_letter, self.row_col_to_coord(row, col))
         board_sprite.add(letter_tile)
 
@@ -182,6 +204,10 @@ class Board:
         return row, col
 
     def space_count(self, word_coord):
+        """
+        Counts the number of empty spaces
+        between letters of current word
+        """
         count = 0
         in_group = False
 
@@ -204,6 +230,7 @@ class Board:
         """
         row_key = [item[0] for item in self.current_word.keys()]
         col_key = [item[1] for item in self.current_word.keys()]
+
         space_coord = self.addword()
         position = self.word_info_position()
         coordinates = row_key if position == "vertical" else col_key
@@ -221,7 +248,12 @@ class Board:
                 return True
         elif space_count == 0 and not all(
             self.not_touching(
-                row_key[0], col_key[0], position, "".join(self.current_word.values())
+                row_key[0],
+                col_key[0],
+                position,
+                "".join(
+                    self.current_word.values(),
+                ),
             )
         ):
             return True
@@ -229,7 +261,6 @@ class Board:
             return False
 
     def addword(self):
-        # będzie return prefix and sufix
         """
         Function finds the empty space between
         put letters and returns start, end and
@@ -243,8 +274,7 @@ class Board:
         row = [item[0] for item in self.current_word.keys()]
         col = [item[1] for item in self.current_word.keys()]
         if all(x == col[0] for x in col):
-            const = col[0]
-            count = row[0]
+            const, count = col[0], row[0]
             for coord in row:
                 if coord == count:
                     count += 1
@@ -256,8 +286,7 @@ class Board:
             end = suffix[0] if suffix else 0
             word_coord = [(start, end), const]
         if all(x == row[0] for x in row):
-            const = row[0]
-            count = col[0]
+            const, count = row[0], col[0]
             for coord in col:
                 if coord == count:
                     count += 1
@@ -285,11 +314,17 @@ class Board:
                 player.reinstate_rack(self.current_word[pos])
         self.current_word_empty()
 
-    def not_touching(self, row_start, col_start, position="horizontal", word=" "):
+    def not_touching(
+        self,
+        row_start,
+        col_start,
+        position="horizontal",
+        word=" ",
+    ):
         """
         Checks if the word is alone
         """
-        valid_con = []
+        valid_condition = []
         if position == "horizontal":
             if row_start != 0:
                 if all(
@@ -297,28 +332,28 @@ class Board:
                     and self.board[row_start - 1][col_start + k] == ""
                     for k in range(len(word))
                 ):
-                    valid_con.append(True)
+                    valid_condition.append(True)
                 else:
-                    valid_con.append(False)
+                    valid_condition.append(False)
             if row_start != 14:
                 if all(
                     0 <= (col_start + k) < 15
                     and self.board[row_start + 1][col_start + k] == ""
                     for k in range(len(word))
                 ):
-                    valid_con.append(True)
+                    valid_condition.append(True)
                 else:
-                    valid_con.append(False)
+                    valid_condition.append(False)
             if col_start != 0:
                 if self.board[row_start][col_start - 1] == "":
-                    valid_con.append(True)
+                    valid_condition.append(True)
                 else:
-                    valid_con.append(False)
+                    valid_condition.append(False)
             if col_start + len(word) < 15:
                 if self.board[row_start][col_start + len(word)] == "":
-                    valid_con.append(True)
+                    valid_condition.append(True)
                 else:
-                    valid_con.append(False)
+                    valid_condition.append(False)
         else:
             if col_start != 0:
                 if all(
@@ -326,29 +361,29 @@ class Board:
                     and self.board[row_start + k][col_start - 1] == ""
                     for k in range(len(word))
                 ):
-                    valid_con.append(True)
+                    valid_condition.append(True)
                 else:
-                    valid_con.append(False)
+                    valid_condition.append(False)
             if col_start != 14:
                 if all(
                     0 <= (row_start + k) < 15
                     and self.board[row_start + k][col_start + 1] == ""
                     for k in range(len(word))
                 ):
-                    valid_con.append(True)
+                    valid_condition.append(True)
                 else:
-                    valid_con.append(False)
+                    valid_condition.append(False)
             if row_start != 0:
                 if self.board[row_start - 1][col_start] == "":
-                    valid_con.append(True)
+                    valid_condition.append(True)
                 else:
-                    valid_con.append(False)
+                    valid_condition.append(False)
             if row_start + len(word) < 15:
                 if self.board[row_start + len(word)][col_start] == "":
-                    valid_con.append(True)
+                    valid_condition.append(True)
                 else:
-                    valid_con.append(False)
-        return valid_con
+                    valid_condition.append(False)
+        return valid_condition
 
     def colid(self, board_sprite, current_next_pos):
         """
@@ -369,7 +404,7 @@ class Board:
         Searches rows for words
         """
         current_word = []
-        check_word = []
+        words = []
         for row in self.board:
             for e, element in enumerate(row):
                 if element != "":
@@ -377,16 +412,16 @@ class Board:
                     if ((e + 1) != len(row) and (row[e + 1] == "")) or (
                         (e + 1) == len(row)
                     ):
-                        check_word.append("".join(current_word))
+                        words.append("".join(current_word))
                         current_word = []
-        return check_word
+        return words
 
     def check_col(self):
         """
         Searches a columns for words
         """
         current_word = []
-        check_word = []
+        words = []
 
         for col in range(15):
             for row in range(15):
@@ -394,13 +429,14 @@ class Board:
                 if element != "":
                     current_word.append(element)
                     if (row + 1) != 15 and (self.board[row + 1][col] == ""):
-                        check_word.append("".join(current_word))
+                        words.append("".join(current_word))
                         current_word = []
-                    elif (row + 1) == 15:
-                        if len(current_word) > 1:
-                            check_word.append("".join(current_word))
+                    elif (row + 1) == 15 and len(current_word) > 1:
+                        words.append("".join(current_word))
                         current_word = []
-        return check_word
+                    elif (row + 1) == 15 and len(current_word) <= 1:
+                        current_word = []
+        return words
 
     def word_in_board(self):
         """
@@ -414,12 +450,11 @@ class Board:
         return words
 
     def letter_in_board(self):
-        letters = [
-            word for word in (self.check_row() + self.check_col()) if len(word) == 1
-        ]
+        all_found = self.check_row() + self.check_col()
+        letters = [word for word in (all_found) if len(word) == 1]
         return letters
 
-    def word_authentication(self, word, words):
+    def word_authentication(self, word, valid):
         """
         Checks if the word is valid (in the list of authentic words).
         Function also manages blank tiles
@@ -433,7 +468,7 @@ class Board:
                     letter_list[blank[0]] = letter1
                     letter_list[blank[1]] = letter2
                     check_word = "".join(letter_list).lower()
-                    if check_word in words:
+                    if check_word in valid:
                         return True
             return False
         else:
@@ -441,26 +476,28 @@ class Board:
                 if letter == " ":
                     for let in blank_list:
                         letter_list[e] = let
-                        checked_word = "".join(letter_list).lower()
-                        if checked_word not in words and let != blank_list[-1]:
+                        check_word = "".join(letter_list).lower()
+                        if check_word not in valid and let != blank_list[-1]:
                             continue
-                        elif checked_word not in words and let == blank_list[-1]:
+                        elif check_word not in valid and let == blank_list[-1]:
                             return False
                         return True
                 else:
                     continue
-            checked_word = word.lower()
-            if checked_word in words:
+            check_word = word.lower()
+            if check_word in valid:
                 return True
             else:
                 return False
 
-    def word_checking(self, words):
+    def word_checking(self, valid):
         """
         Checks if all the words on the board are valid
         """
+        self.empty_word_list()
         for word in self.word_in_board():
-            if self.word_authentication(word, words):
+            if self.word_authentication(word, valid):
+                self.update_word_list(word)
                 continue
             else:
                 return False
@@ -485,11 +522,11 @@ class Board:
                     word_amount += 1
         return self.word_list
 
-    def validation(self, board_sprite, words, player):
+    def validation(self, board_sprite, valid, player):
         """
         Manages all the validation proces of word made by player
         """
-        if self.word_checking(words):
+        if self.word_checking(valid):
             self.word_lists_adding(player)
         else:
             self.not_valid_action(board_sprite, player)
@@ -505,7 +542,7 @@ class Board:
         """
         Checks if the word exists and on which coordinates
         """
-        pos = []
+        info = []
 
         find_word = []
         word = word.upper()
@@ -514,12 +551,12 @@ class Board:
                 element = self.board[row][col]
                 if element != "" and element in word:
                     find_word.append(element)
-                    if "".join(find_word) == word:
-                        start_row = row - len(find_word) + 1
-                        # poprawić
-                        if self.not_touching(start_row, col, "vertical", word):
-                            pos = ["vertical", start_row, col]
-                            return pos
+                    start_row = row - len(find_word) + 1
+                    if "".join(find_word) == word and self.not_touching(
+                        start_row, col, "vertical", word
+                    ):
+                        info = ["vertical", start_row, col]
+                        return info
                 else:
                     find_word.clear()
 
@@ -528,33 +565,12 @@ class Board:
                 element = self.board[row][col]
                 if element != "" and element in word:
                     find_word.append(element)
-                    if "".join(find_word) == word:
-                        start_col = col - len(find_word) + 1
-                        if self.not_touching(row, start_col, "horizontal", word):
-                            pos = ["horizontal", row, start_col]
-                            return pos
+                    start_col = col - len(find_word) + 1
+                    if "".join(find_word) == word and self.not_touching(
+                        row, start_col, "horizontal", word
+                    ):
+                        info = ["horizontal", row, start_col]
+                        return info
                 else:
                     find_word.clear()
         return False
-
-    def remove_added_to(self):
-        if (
-            self.word_list
-            and len(self.current_word) > 1
-            and len(self.word_list[-1]) > len(self.current_word.values())
-        ):
-            previous_coord = self.addword()
-            prev_word = ""
-            if self.word_info_position() == "vertical":
-                coords = previous_coord[0]
-                col = previous_coord[1]
-                for row in range(coords[0], coords[1]):
-                    prev_word += self.board[row][col]
-            else:
-                coords = previous_coord[1]
-                row = previous_coord[0]
-                for col in range(coords[0], coords[1]):
-                    prev_word += self.board[row][col]
-
-                if prev_word in self.word_list:
-                    self.word_list.remove(prev_word)

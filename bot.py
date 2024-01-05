@@ -25,20 +25,18 @@ class Bot(Player):
         word = word.upper()
         old = old.upper()
         letter_list = [letter for letter in word]
-        blank_count = self.rack().count(" ")
+        blank_count = self.rack.count(" ")
         if all(
-            (word.count(letter) <= self.rack().count(letter) + old.count(letter))
+            (word.count(letter) <= self.rack.count(letter) + old.count(letter))
             for letter in set(word)
         ):
             return letter_list
         else:
             not_in_rack = {
-                letter: word.count(letter)
-                - self.rack().count(letter)
-                - old.count(letter)
+                letter: word.count(letter) - self.rack.count(letter) - old.count(letter)
                 for letter in set(word)
                 if letter not in not_in_rack
-                and word.count(letter) > self.rack().count(letter) + old.count(letter)
+                and word.count(letter) > self.rack.count(letter) + old.count(letter)
             }
             all_count = sum(not_in_rack.values())
 
@@ -90,40 +88,11 @@ class Bot(Player):
         """
         Finds a valid new word for bot. Manages blank tiles
         """
-        blank_count = self.rack().count(" ")
 
         for word in valid_words:
-            not_in_rack = {}
-            word = word.upper()
-            letter_list = [letter for letter in word]
-
-            if all(
-                (word.count(letter) <= self.rack().count(letter))
-                for letter in set(word)
-            ):
-                return letter_list
-            else:
-                not_in_rack = {
-                    letter: word.count(letter) - self.rack().count(letter)
-                    for letter in set(word)
-                    if letter not in not_in_rack
-                    and word.count(letter) > self.rack().count(letter)
-                }
-                all_count = sum(not_in_rack.values())
-
-                if all_count <= blank_count:
-                    for e, letter in enumerate(word):
-                        if (
-                            letter in not_in_rack
-                            and word.count(letter) == not_in_rack[letter]
-                        ):
-                            letter_list[e] = " "
-                        elif letter in not_in_rack and not_in_rack[letter] != 0:
-                            letter_list[e] = " "
-                            not_in_rack[letter] -= 1
-                        else:
-                            letter_list[e] = letter
-                    return letter_list
+            choice = self.blank_on_rack_handling(word)
+            if choice:
+                return choice
         return []
 
     def valid_new_word(self, valid_words, board):
@@ -203,7 +172,7 @@ class Bot(Player):
                 if choice and choice != word:
                     choice_letters = [letter.upper() for letter in choice]
                     word_letters = [letter.upper() for letter in word]
-                    all_pos_letters = word_letters + self.rack()
+                    all_pos_letters = word_letters + self.rack
                     if all(
                         (choice_letters.count(letter))
                         <= (all_pos_letters.count(letter))
@@ -227,7 +196,6 @@ class Bot(Player):
         new_letters = {}
         original_word = original_word.upper()
         modified_word = modified_word.upper()
-        print(original_word, modified_word)
         position = re.search(original_word.upper(), modified_word.upper()).span()
         for e, letter in enumerate(modified_word):
             if e < position[0]:
@@ -239,15 +207,15 @@ class Bot(Player):
                 continue
         return new_letters
 
-    def make_prefix_and_sufix(self, added: dict):
+    def make_prefix_and_suffix(self, added: dict):
         prefix = []
-        sufix = []
+        suffix = []
         for ind, original_pres in added:
             if original_pres == 0:
                 prefix.append(added[(ind, original_pres)])
             else:
-                sufix.append(added[(ind, original_pres)])
-        return prefix, sufix
+                suffix.append(added[(ind, original_pres)])
+        return prefix, suffix
 
     def valid_add_pos(self, board, row_start, col_start, position, added):
         """
@@ -261,14 +229,14 @@ class Bot(Player):
 
     def word_blank(self, blank_find):
         prefix = []
-        sufix = []
+        suffix = []
         if blank_find == "":
             return ""
         new, with_blank, without_blank = blank_find
         letters = [letter for letter in new]
         added = self.added_letters(without_blank, new)
 
-        prefix, sufix = self.make_prefix_and_sufix(added)
+        prefix, suffix = self.make_prefix_and_suffix(added)
 
         for e, letter in enumerate(with_blank):
             if letter == " ":
@@ -281,11 +249,11 @@ class Bot(Player):
         old_word, upd_word = result[0], result[1]
         coord = board.exist(result[0])
 
-        prefix, sufix = self.make_prefix_and_sufix(added_let)
+        prefix, suffix = self.make_prefix_and_suffix(added_let)
 
         if position == "horizontal" and (
             coord[2] - len(prefix) >= 0
-            and (coord[2] + len(result[0]) + len(sufix) - 1 <= 14)
+            and (coord[2] + len(result[0]) + len(suffix) - 1 <= 14)
         ):
             row_start = coord[1]
             col_start_pr = coord[2] - len(prefix)
@@ -308,26 +276,26 @@ class Bot(Player):
             elif not prefix:
                 new_word["prefix"] = []
 
-            if sufix and self.valid_add_pos(
-                board, row_start, col_start_suf, position, sufix
+            if suffix and self.valid_add_pos(
+                board, row_start, col_start_suf, position, suffix
             ):
-                new_word["sufix"] = [
+                new_word["suffix"] = [
                     row_start,
                     col_start_suf,
                     position,
-                    "".join(sufix).upper(),
+                    "".join(suffix).upper(),
                 ]
-            elif sufix and not self.valid_add_pos(
-                board, row_start, col_start_suf, position, sufix
+            elif suffix and not self.valid_add_pos(
+                board, row_start, col_start_suf, position, suffix
             ):
                 new_word = {}
                 return new_word
-            elif not sufix:
-                new_word["sufix"] = []
+            elif not suffix:
+                new_word["suffix"] = []
 
         elif position == "vertical" and (
             coord[1] - len(prefix) >= 0
-            and coord[1] + len(result[0]) + len(sufix) - 1 <= 14
+            and coord[1] + len(result[0]) + len(suffix) - 1 <= 14
         ):
             row_start_pr = coord[1] - len(prefix)
             row_start_suf = coord[1] + len(result[0])
@@ -349,22 +317,22 @@ class Bot(Player):
             elif not prefix:
                 new_word["prefix"] = []
 
-            if sufix and self.valid_add_pos(
-                board, row_start_suf, col_start, position, sufix
+            if suffix and self.valid_add_pos(
+                board, row_start_suf, col_start, position, suffix
             ):
-                new_word["sufix"] = [
+                new_word["suffix"] = [
                     row_start_suf,
                     col_start,
                     position,
-                    "".join(sufix).upper(),
+                    "".join(suffix).upper(),
                 ]
-            elif sufix and not self.valid_add_pos(
-                board, row_start_suf, col_start, position, sufix
+            elif suffix and not self.valid_add_pos(
+                board, row_start_suf, col_start, position, suffix
             ):
                 new_word = {}
                 return new_word
-            elif not sufix:
-                new_word["sufix"] = []
+            elif not suffix:
+                new_word["suffix"] = []
 
         else:
             new_word = {}
@@ -383,7 +351,7 @@ class Bot(Player):
             if choice == "added"
             else self.new_word(board, valid_words)[0]
         )
-
+        position = ""
         old_word, upd_word = result[0], result[1]
         old_word.upper()
         upd_word.upper()
@@ -460,8 +428,8 @@ class Bot(Player):
                 return True
             else:
                 return False
-        if choice["sufix"]:
-            row, col, position, added = choice["sufix"]
+        if choice["suffix"]:
+            row, col, position, added = choice["suffix"]
             if (
                 position == "horizontal"
                 and self.valid_add_pos(board, row, col, position, added)
@@ -481,31 +449,30 @@ class Bot(Player):
 
         return False
 
-    def made_word(self, board, valid_words, bot_choice, letters_bag):
+    def made_word(self, board, bot_choice, letters_bag):
         """
         Updates board, word_lists
         """
         current_word = {}
-        "bot_choice = self.attempts(board, valid_words)"
         if bot_choice["mode"] == "first":
             info = bot_choice["info"]
             current_word = self.made_current_word(info)
             board.update_word_list(bot_choice["info"][3])
             self.update_words(bot_choice["info"][3])
         else:
-            added_prefix, added_sufix = bot_choice["prefix"], bot_choice["sufix"]
+            added_prefix, added_suffix = bot_choice["prefix"], bot_choice["suffix"]
             if added_prefix:
                 current_pref = self.made_current_word(added_prefix)
                 current_word.update(current_pref)
-            if added_sufix:
-                current_suf = self.made_current_word(added_sufix)
+            if added_suffix:
+                current_suf = self.made_current_word(added_suffix)
                 current_word.update(current_suf)
 
             if all(
                 board.board[row][col] == "" for row, col in current_word
             ) and self.valid_new(board, bot_choice):
                 if bot_choice["old_word"] in board.word_list:
-                    board.word_list.remove(bot_choice["old_word"])
+                    board.remove_from_word_list(bot_choice["old_word"])
 
                 board.update_word_list(bot_choice["new_word"])
                 self.update_words(bot_choice["new_word"])
@@ -521,9 +488,7 @@ class Bot(Player):
         while tries > 0:
             bot_choice = self.word_finding(board, valid_words)
             if bot_choice:
-                board.current_word = self.made_word(
-                    board, valid_words, bot_choice, letters_bag
-                )
+                board.current_word = self.made_word(board, bot_choice, letters_bag)
                 return board.current_word
             else:
                 tries -= 1
@@ -537,8 +502,8 @@ class Bot(Player):
         board.current_word = self.attempts(board, valid_words, letters_bag)
         for pos in board.current_word:
             board.draw_tiles(board_sprite, board.current_word[pos], pos)
-            letter_hand = self.rack().index(board.current_word[pos])
-            self.rack()[letter_hand] = ""
+            letter_hand = self.rack.index(board.current_word[pos])
+            self.rack[letter_hand] = ""
         board.update_board()
-        print(board.current_word, board.word_list)
+        print(board.word_list)
         board.current_word_empty()
