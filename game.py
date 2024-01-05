@@ -1,6 +1,5 @@
 import pygame
 import sys
-from board import Board
 from constants import (
     EXTRA_SPACE,
     WIDTH,
@@ -21,6 +20,7 @@ from tiles import Tile
 from player import Player
 from bot import Bot
 from move import Move
+from board import Board
 from letters_bag import LettersBag
 
 
@@ -36,8 +36,15 @@ class ScrabbleGame:
         pygame.display.set_caption("SCRABBLE")
         pygame.font.init()
 
+        self.player = Player()
+        self.bot = Bot()
+        self.board = Board()
+        self.move = Move()
+        self.letters_bag = LettersBag()
+
         self._turn = "Bot"
         self._round = 1
+        self._skip_count = 0
 
         self._player_score = 0
         self._bot_score = 0
@@ -51,6 +58,10 @@ class ScrabbleGame:
         return self._round
 
     @property
+    def skip_count(self):
+        return self._skip_count
+
+    @property
     def player_score(self):
         return self._player_score
 
@@ -58,9 +69,9 @@ class ScrabbleGame:
     def bot_score(self):
         return self._bot_score
 
-    def update_turn(self, player):
+    def update_turn(self):
         if self.turn == "Bot":
-            self._turn = player.name()
+            self._turn = self.player.name
         else:
             self._turn = "Bot"
         return self._turn
@@ -68,6 +79,25 @@ class ScrabbleGame:
     def update_round(self):
         self._round += 1
         return self._round
+
+    def update_skip_count(self):
+        self._skip_count += 1
+        return self._skip_count
+
+    def empty_skip_count(self):
+        self._skip_count = 0
+        return self._skip_count
+
+    def update_scores(self):
+        self._player_score = self.player.final_score(
+            self.bot,
+            self.letters_bag,
+        )
+        self._bot_score = self.bot.final_score(
+            self.player,
+            self.letters_bag,
+        )
+        return self._player_score, self._bot_score
 
     def start_win(self):
         """
@@ -113,8 +143,6 @@ class ScrabbleGame:
         In case of not doing it, the automatic name is 'Player'.
         """
         self.WIN.fill(CENTRAL_COLOR)
-
-        player_name = ""
 
         base_font = pygame.font.Font(None, SQUARE_SIZE)
         user_text = ""
@@ -174,7 +202,8 @@ class ScrabbleGame:
                         user_text = user_text[:-1]
 
                     if event.key == pygame.K_RETURN:
-                        player_name = user_text
+                        if user_text:
+                            self.player.update_name(user_text)
                         run = False
 
                     elif active and event.key != pygame.K_BACKSPACE:
@@ -182,7 +211,8 @@ class ScrabbleGame:
 
             # if the player write a name containing 10 symbols, the game starts
             if len(user_text) == 10:
-                player_name = user_text
+                if user_text:
+                    self.player.update_name(user_text)
                 run = False
 
             # if clicked the square is grey, else white
@@ -198,9 +228,8 @@ class ScrabbleGame:
             self.WIN.blit(name_surface, name_rect)
 
             pygame.display.flip()
-        return player_name
 
-    def game(self, player_name):
+    def game(self):
         """
         Function that handles main game
         """
@@ -217,11 +246,11 @@ class ScrabbleGame:
         rack_sprite = pygame.sprite.Group()
 
         # classes used in game
-        player = Player(player_name)
-        bot = Bot()
-        board = Board()
-        move = Move()
-        letters_bag = LettersBag()
+        player = self.player
+        board = self.board
+        bot = self.bot
+        letters_bag = self.letters_bag
+        move = self.move
 
         board.create_board()
 
@@ -230,18 +259,11 @@ class ScrabbleGame:
 
         bot.updating_rack(letters_bag)
 
-        # score of a player and bot
-        player_score = 0
-        bot_score = 0
-
-        # Skip and round counter
-        skip_count = 0
-
         with open("slowa.txt", "r", encoding="utf-8") as file:
             content = file.read()
             words = content.split()
 
-        self.update_turn(player)
+        self.update_turn()
 
         while run:
             clock.tick(60)
@@ -254,7 +276,7 @@ class ScrabbleGame:
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_e:
                         # Aborts game running; shows score
-                        self.end(player_name, player_score, bot_score)
+                        self.end()
                         run = False
 
                     if event.key == pygame.K_r:
@@ -263,7 +285,7 @@ class ScrabbleGame:
                             rack_sprite.empty()
                             player.replace_rack(letters_bag)
 
-                            self.update_turn(player)
+                            self.update_turn()
                             self.draw_info_box()
                             bot.bot_turn(
                                 board,
@@ -272,7 +294,7 @@ class ScrabbleGame:
                                 letters_bag,
                             )
                             bot.updating_rack(letters_bag)
-                            self.update_turn(player)
+                            self.update_turn()
                             self.draw_info_box()
 
                             board.draw_rack(player.rack(), rack_sprite)
@@ -281,24 +303,24 @@ class ScrabbleGame:
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_s:
                         # Skips round; if count == 2: end of the game
-                        skip_count += 1
+                        self.update_skip_count()
                         board.not_valid_action(board_sprite, player)
 
-                        self.update_turn(player)
+                        self.update_turn()
                         self.draw_info_box()
                         bot.bot_turn(board, board_sprite, words, letters_bag)
-                        bot.updating_rack(board)
-                        self.update_turn(player)
+                        bot.updating_rack(letters_bag)
+                        self.update_turn()
                         self.draw_info_box()
 
                         board.draw_rack(player.rack(), rack_sprite)
                         self.update_round()
-                        if skip_count == 2 or bot.empty_rack():
-                            self.end(player_name, player_score, bot_score)
+                        if self.skip_count == 2 or bot.empty_rack():
+                            self.end()
                             run = False
 
                     else:
-                        skip_count = 0
+                        self.empty_skip_count()
 
                 # Checks if we pushed mousebuttons, manages moving tiles
                 if event.type == pygame.MOUSEBUTTONDOWN:
@@ -374,12 +396,12 @@ class ScrabbleGame:
 
                         self.win_update(board, rack_sprite, board_sprite)
 
-                        self.update_turn(player)
+                        self.update_turn()
 
                         self.draw_info_box()
                         bot.bot_turn(board, board_sprite, words, letters_bag)
                         bot.updating_rack(letters_bag)
-                        self.update_turn(player)
+                        self.update_turn()
                         self.draw_info_box()
 
                         player.updating_rack(letters_bag)
@@ -389,22 +411,19 @@ class ScrabbleGame:
 
                         # after round the game checks if the terms for end
                         if player.empty_rack() or bot.empty_rack():
-                            self.end(player_name, player_score, bot_score)
+                            self.end()
                             run = False
 
                         else:
                             continue
 
             self.draw_info_box()
-
-            player_score = player.final_score(bot, letters_bag)
-            bot_score = bot.final_score(player, letters_bag)
-
             self.win_update(board, rack_sprite, board_sprite)
+            self.update_scores()
 
         return run
 
-    def end(self, player_name, player_score, bot_score):
+    def end(self):
         """
         Manages ending screen
         """
@@ -413,7 +432,7 @@ class ScrabbleGame:
 
         font = pygame.font.Font(None, 36)
 
-        winner_name = player_name if player_score > bot_score else "Bot"
+        winner_name = self.player.name if self.player_score > self.bot_score else "Bot"
 
         text_info = [
             {
@@ -422,12 +441,12 @@ class ScrabbleGame:
                 "coord": (WIDTH // 2, (HEIGHT // 2) + EXTRA_SPACE),
             },
             {
-                "text": f"{player_name}'s score: {player_score}",
+                "text": f"{self.player.name}'s score: {self.player_score}",
                 "font": SQUARE_SIZE // 2,
                 "coord": (WIDTH // 2, (HEIGHT // 2) + 2 * EXTRA_SPACE),
             },
             {
-                "text": f"Bot score: {bot_score}",
+                "text": f"Bot score: {self.bot_score}",
                 "font": SQUARE_SIZE // 2,
                 "coord": (WIDTH // 2, (HEIGHT // 2) + 3 * EXTRA_SPACE),
             },
