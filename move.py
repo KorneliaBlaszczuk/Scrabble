@@ -1,10 +1,13 @@
 class Move:
     """
     Class Move
+
     Manages logic - valid positions
+
+    :param click: list of coordinates where player clicked
+    :type click: list of tuples
     """
 
-    # najpierw patrzymy na położenie, a potem na valid_words
     def __init__(self):
         self._click = []
 
