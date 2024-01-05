@@ -1,7 +1,7 @@
 # Projekt PIPR - Gra SCRABBLE
 
 ### Autor
-Kornelia Błaszczuk <br>
+<strong>Kornelia Błaszczuk</strong> <br>
 Studentka Informatyki I stopnia na Politechnice Warszawskiej <br>
 Numer Indeksu: 331361 <br>
 Mail: 01187210@pw.edu.pl <br>
