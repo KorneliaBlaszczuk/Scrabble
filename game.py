@@ -77,7 +77,7 @@ class ScrabbleGame:
         self.move = Move()
         self.letters_bag = LettersBag()
 
-        self._turn = "Bot"
+        self._turn = self.bot.name
         self._round = 1
         self._skip_count = 0
 
