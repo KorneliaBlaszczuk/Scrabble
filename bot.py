@@ -20,7 +20,7 @@ class Bot(Player):
     def __init__(self, name="Bot", words=None, rack=None):
         super().__init__(name, words, rack)
 
-    def blank__on_rack_handling(self, word, old=""):
+    def blank_on_rack_handling(self, word, old=""):
         not_in_rack = {}
         word = word.upper()
         old = old.upper()
@@ -55,6 +55,7 @@ class Bot(Player):
                     else:
                         letter_list[e] = letter
                 return letter_list
+        return []
 
     def blank_find(self, word, valid_words):
         letter_list = list(word)
@@ -210,7 +211,7 @@ class Bot(Player):
                     ):
                         return choice
                     else:
-                        choice = self.blank__on_rack_handling(element, word)
+                        choice = self.blank_on_rack_handling(element, word)
                         if choice:
                             return "".join(choice)
 
@@ -238,7 +239,7 @@ class Bot(Player):
                 continue
         return new_letters
 
-    def make_prefix_and_sufix(self, added):
+    def make_prefix_and_sufix(self, added: dict):
         prefix = []
         sufix = []
         for ind, original_pres in added:
@@ -256,23 +257,14 @@ class Bot(Player):
         valid_pos_pr = board.not_touching(
             row_start, col_start, position, "".join(added)
         )
-        false_count = 0
-        for term in valid_pos_pr:
-            if term is False:
-                false_count += 1
-        if false_count == 1:
-            return True
-        return False
+        return sum(not term for term in valid_pos_pr) == 1
 
     def word_blank(self, blank_find):
         prefix = []
         sufix = []
-        print(blank_find)
         if blank_find == "":
             return ""
         new, with_blank, without_blank = blank_find
-        new = new.upper()
-        without_blank.upper()
         letters = [letter for letter in new]
         added = self.added_letters(without_blank, new)
 
