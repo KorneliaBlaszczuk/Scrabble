@@ -71,7 +71,7 @@ Gra kończy się, gdy jeden z graczy nie ma już żadnych płytek na stojaku. Op
 |    <strong>ENTER</strong>   |    Zatwierdzenie słowa; przejście do kolejki bota  /   Zatwierdzenie imienia  |
 |      <strong>R</strong>     |    Wymiana płytek    |
 |      <strong>S</strong>     |    Opuszczenie kolejki |
-| E | Zakończenie rozgrywki</strong> |
+| <strong>E</strong> | Zakończenie rozgrywki</strong> |
 
 ## Klasy
  - <strong>Game</strong> <br>
