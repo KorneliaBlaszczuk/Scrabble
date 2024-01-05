@@ -14,26 +14,33 @@ class Player:
 
     """
 
-    def __init__(self, name, words=None, rack=None):
+    def __init__(self, name="Player", words=None, rack=None):
         self._name = str(name)
         self._words = words if words else []
         self._rack = rack if rack else ["", "", "", "", "", "", ""]
 
+    @property
     def name(self):
         return self._name
 
+    @property
     def words(self):
         return self._words
 
+    @property
     def rack(self):
         return self._rack
+
+    def update_name(self, new_name):
+        self._name = new_name
+        return self._name
 
     def update_words(self, word):
         """
         Updates player's list of words
         """
-        self.words().append(word)
-        return self.words()
+        self.words.append(word)
+        return self.words
 
     def updating_rack(self, letters_bag):
         """
@@ -43,21 +50,21 @@ class Player:
         taking into account the number of plates of a given letter
         in the 'bag'.
         """
-        for e, hand_letter in enumerate(self.rack()):
+        for e, hand_letter in enumerate(self.rack):
             if hand_letter == "" and letters_bag.choosing_letter() != "":
                 letter = letters_bag.choosing_letter()
                 if letters_bag.letters_bag[letter][0] > 0:
-                    self.rack()[e] = letter
+                    self.rack[e] = letter
                     letters_bag.taking_out(letter)
-        return self.rack()
+        return self.rack
 
     def reinstate_rack(self, letter):
         """
         Restores the beginning of the rack status for the round.
         """
-        for e, hand_letter in enumerate(self.rack()):
+        for e, hand_letter in enumerate(self.rack):
             if hand_letter == "":
-                self.rack()[e] = letter
+                self.rack[e] = letter
                 break
 
     def is_rack_used(self):
@@ -65,25 +72,25 @@ class Player:
         Checks whether the stand is in use, i.e. whether any letters
         have already been removed during the current round
         """
-        return "" in self.rack()
+        return "" in self.rack
 
     def replace_rack(self, letters_bag):
         """
         Replaces the letters on the rack
         """
         if not self.is_rack_used():
-            for e, letter in enumerate(self.rack()):
+            for e, letter in enumerate(self.rack):
                 letters_bag.put_back(letter)
-                self.rack()[e] = ""
+                self.rack[e] = ""
             self.updating_rack(letters_bag)
 
-        return self.rack()
+        return self.rack
 
     def empty_rack(self):
         """
         Checks if the rack is empty
         """
-        return all(place == "" for place in self.rack())
+        return all(place == "" for place in self.rack)
 
     def score_of_one_word(self, word, letters_bag):
         """
@@ -98,9 +105,7 @@ class Player:
         empty while player's is
         """
         extra_points = sum(
-            letters_bag.letters_bag[letter][1]
-            for letter in other.rack()
-            if letter != ""
+            letters_bag.letters_bag[letter][1] for letter in other.rack if letter != ""
         )
         return extra_points
 
@@ -112,7 +117,7 @@ class Player:
         results in minus points
         """
         total_score = sum(
-            self.score_of_one_word(word, letters_bag) for word in self.words()
+            self.score_of_one_word(word, letters_bag) for word in self.words
         )
 
         if self.empty_rack():
@@ -120,7 +125,7 @@ class Player:
         else:
             total_score -= sum(
                 letters_bag.letters_bag[letter][1]
-                for letter in self.rack()
+                for letter in self.rack
                 if letter != ""
             )
         return total_score

@@ -15,9 +15,8 @@ def main():
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
-                    player_name = game.name_win()
-                    name = player_name if player_name != "" else "Player"
-                    run = game.game(name)
+                    game.name_win()
+                    run = game.game()
         if run:
             game.start_win()
     pygame.quit()

@@ -27,7 +27,42 @@ from letters_bag import LettersBag
 class ScrabbleGame:
     """
     Class ScrabbleGame
+
     Manages game, including game windows and clicks
+
+    :param WIN: game window
+    :type WIN: pygame.Surface
+
+    :param player: class Player
+    :type player: class
+
+    :param bot: class Bot
+    :type bot: class
+
+    :param board: class Board
+    :type board: class
+
+    :param move: class Move
+    :type move: class
+
+    :param letters_bag: class LettersBag
+    :type letters_bag: class
+
+    :param turn: shows whose turn it is
+    :type turn: str
+
+    :param round: number of current round
+    :type round: int
+
+    :param skip_count: shows how many times in a row
+        the player skipped their round
+    :type skip_count: int
+
+    :param player_score: score of the player
+    :type player_score: int
+
+    :param bot_score: score of the bot
+    :type bot_score: int
     """
 
     def __init__(self):
@@ -70,6 +105,9 @@ class ScrabbleGame:
         return self._bot_score
 
     def update_turn(self):
+        """
+        Updates whose turn it is
+        """
         if self.turn == "Bot":
             self._turn = self.player.name
         else:
@@ -77,18 +115,30 @@ class ScrabbleGame:
         return self._turn
 
     def update_round(self):
+        """
+        Updates round count
+        """
         self._round += 1
         return self._round
 
     def update_skip_count(self):
+        """
+        Updates skip count
+        """
         self._skip_count += 1
         return self._skip_count
 
     def empty_skip_count(self):
+        """
+        Empties skip count. Now it's equal to 0
+        """
         self._skip_count = 0
         return self._skip_count
 
     def update_scores(self):
+        """
+        Updates players' scores
+        """
         self._player_score = self.player.final_score(
             self.bot,
             self.letters_bag,
@@ -255,7 +305,7 @@ class ScrabbleGame:
         board.create_board()
 
         player.updating_rack(letters_bag)
-        board.draw_rack(player.rack(), rack_sprite)
+        board.draw_rack(player.rack, rack_sprite)
 
         bot.updating_rack(letters_bag)
 
@@ -297,7 +347,7 @@ class ScrabbleGame:
                             self.update_turn()
                             self.draw_info_box()
 
-                            board.draw_rack(player.rack(), rack_sprite)
+                            board.draw_rack(player.rack, rack_sprite)
                             self.update_round()
 
                 if event.type == pygame.KEYDOWN:
@@ -313,7 +363,7 @@ class ScrabbleGame:
                         self.update_turn()
                         self.draw_info_box()
 
-                        board.draw_rack(player.rack(), rack_sprite)
+                        board.draw_rack(player.rack, rack_sprite)
                         self.update_round()
                         if self.skip_count == 2 or bot.empty_rack():
                             self.end()
@@ -327,7 +377,7 @@ class ScrabbleGame:
                     position = pygame.mouse.get_pos()
                     x, y = position
                     row, col = board.coord_to_row_col(position)
-                    move.click.append((row, col))
+                    move.update_click((row, col))
                     # manages mouse clicks
                     move.click_handling(player, board, board_sprite)
 
@@ -340,13 +390,13 @@ class ScrabbleGame:
                         )
 
                         # If the player clicks on an empty space in rack
-                        if player.rack()[rack_col - 4] == "":
-                            move.click.clear()
+                        if player.rack[rack_col - 4] == "":
+                            move.empty_click()
                             break
 
                         # Gets info about letter tile; moves it
                         letter_title = Tile(
-                            player.rack()[rack_col - 4], (letter_x, letter_y)
+                            player.rack[rack_col - 4], (letter_x, letter_y)
                         )
 
                         letter_row, letter_col = board.coord_to_row_col((x, y))
@@ -359,12 +409,12 @@ class ScrabbleGame:
 
                         # Rack updating
 
-                        player.rack()[rack_col - 4] = ""
+                        player.rack[rack_col - 4] = ""
 
                         x = extra_space_x
                         y = (COLS + 1) * SQUARE_SIZE
 
-                        for current_letters in player.rack():
+                        for current_letters in player.rack:
                             if current_letters == "":
                                 x += SQUARE_SIZE
                             else:
@@ -375,7 +425,7 @@ class ScrabbleGame:
                         x = extra_space_x
                         y = extra_space_y + EXTRA_SPACE // 2
 
-                        move.click.clear()
+                        move.empty_click()
 
                 # If enter the word is checked and then bot turn
                 if event.type == pygame.KEYDOWN:
@@ -390,8 +440,6 @@ class ScrabbleGame:
                             player,
                         )
 
-                        board.remove_added_to()
-
                         board.current_word_empty()
 
                         self.win_update(board, rack_sprite, board_sprite)
@@ -405,7 +453,7 @@ class ScrabbleGame:
                         self.draw_info_box()
 
                         player.updating_rack(letters_bag)
-                        board.draw_rack(player.rack(), rack_sprite)
+                        board.draw_rack(player.rack, rack_sprite)
 
                         self.update_round()
 
