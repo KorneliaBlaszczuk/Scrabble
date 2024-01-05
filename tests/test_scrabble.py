@@ -1079,6 +1079,48 @@ def test_made_current_word_horizontal():
     assert bot.made_current_word(info) == {(10, 12): "A"}
 
 
+def test_blank_on_rack_first():
+    rack = ["M", "A", "M", "A", "J", "L", "Z"]
+    bot = Bot(rack=rack)
+    assert bot.blank_on_rack_handling("mama")
+
+
+def test_blank_on_rack_first_blank():
+    rack = ["M", "A", "M", " ", "J", "L", "Z"]
+    bot = Bot(rack=rack)
+    assert bot.blank_on_rack_handling("mama")
+
+
+def test_blank_on_rack_first_old():
+    rack = ["M", "A", "M", " ", "I", "L", "Z"]
+    bot = Bot(rack=rack)
+    assert bot.blank_on_rack_handling("im ma", "m ma")
+
+
+def test_blank_on_rack_first_old_add_blank():
+    rack = ["M", "A", "M", " ", "", "L", "Z"]
+    bot = Bot(rack=rack)
+    assert bot.blank_on_rack_handling("im ma", "m ma")
+
+
+def test_blank_on_rack_first_old_false():
+    rack = ["M", "A", "M", "", "", "L", "Z"]
+    bot = Bot(rack=rack)
+    assert not bot.blank_on_rack_handling("im ma", "m ma")
+
+
+def test_blank_on_rack_first_old_two_blank():
+    rack = ["M", "A", "M", "", "I", "L", "Z"]
+    bot = Bot(rack=rack)
+    assert bot.blank_on_rack_handling("im m ", "m m ")
+
+
+def test_blank_handling_two_blank_rack():
+    rack = ["M", " ", "M", " ", "", "L", "Z"]
+    bot = Bot(rack=rack)
+    assert bot.blank_on_rack_handling("im ma", "m m")
+
+
 """
 Class LettersBag Tests
 """
