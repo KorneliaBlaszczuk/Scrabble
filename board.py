@@ -26,10 +26,6 @@ class Board:
     :param word_list: List of all the words on the board
     :type word_list: list
 
-    :param letters_bag: List of all the avaible letter tiles in the
-    bag with its amount and value
-    :type letters_bag: dict
-
     :param current_word: dict containing current word made by player
     :type current_word: dict
 
@@ -352,7 +348,6 @@ class Board:
                     valid_con.append(True)
                 else:
                     valid_con.append(False)
-        print(valid_con)
         return valid_con
 
     def colid(self, board_sprite, current_next_pos):
