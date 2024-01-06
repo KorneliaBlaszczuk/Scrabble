@@ -34,7 +34,7 @@ class Board:
     def __init__(self):
         self._board = []
         self._word_list = []
-        self.current_word = {}
+        self._current_word = {}
 
     @property
     def word_list(self):
@@ -44,6 +44,10 @@ class Board:
     def board(self):
         return self._board
 
+    @property
+    def current_word(self):
+        return self._current_word
+
     def empty_word_list(self):
         self.word_list.clear()
         return self.word_list
@@ -51,7 +55,7 @@ class Board:
     def remove_from_word_list(self, word):
         self.word_list.remove(word)
         return self.word_list
-    
+
     def update_word_list(self, word):
         """
         Appends a word list
@@ -72,7 +76,7 @@ class Board:
                     key=lambda item: item[0][1],
                 )
             )
-            self.current_word = sorted_word
+            self._current_word = sorted_word
         elif all(y == col_key[0] for y in col_key):
             sorted_word = dict(
                 sorted(
@@ -80,7 +84,7 @@ class Board:
                     key=lambda item: item[0][0],
                 )
             )
-            self.current_word = sorted_word
+            self._current_word = sorted_word
         else:
             return False
 
@@ -392,7 +396,7 @@ class Board:
         row = current_next_pos[1][0]
         col = current_next_pos[1][1]
         for letter in board_sprite:
-            letter_row, letter_col = self.coord_to_row_col(letter.position())
+            letter_row, letter_col = self.coord_to_row_col(letter.position)
             if letter_row == row and letter_col == col:
                 return True
             else:

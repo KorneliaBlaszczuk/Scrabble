@@ -488,7 +488,7 @@ class Bot(Player):
         while tries > 0:
             bot_choice = self.word_finding(board, valid_words)
             if bot_choice:
-                board.current_word = self.made_word(board, bot_choice, letters_bag)
+                board._current_word = self.made_word(board, bot_choice, letters_bag)
                 return board.current_word
             else:
                 tries -= 1
@@ -499,7 +499,7 @@ class Bot(Player):
         """
         Manages whole bot turn
         """
-        board.current_word = self.attempts(board, valid_words, letters_bag)
+        board._current_word = self.attempts(board, valid_words, letters_bag)
         for pos in board.current_word:
             board.draw_tiles(board_sprite, board.current_word[pos], pos)
             letter_hand = self.rack.index(board.current_word[pos])

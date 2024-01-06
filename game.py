@@ -402,7 +402,7 @@ class ScrabbleGame:
                         letter_row, letter_col = board.coord_to_row_col((x, y))
 
                         board.current_word_update(
-                            (letter_row, letter_col), letter_title.letter()
+                            (letter_row, letter_col), letter_title.letter
                         )
                         rack_sprite.empty()
                         board_sprite.add(letter_title)
