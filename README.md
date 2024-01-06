@@ -86,10 +86,10 @@ Gra kończy się, gdy jeden z graczy nie ma już żadnych płytek na stojaku. Op
 ## Klasy
 
 - <strong>Game</strong> <br>
-  Klasa mająca za zadanie zarządzanie aktualną instancją gry.
+  Klasa mająca za zadanie zarządzanie aktualną instancją gry. W tym stroną graficzną.
 
 - <strong>Board</strong> <br>
-  Zarządza planszą, np.: w tym rysowaniem jej elementów, jak i wizualnej strony stojaka z literami. Zarządza również listą słów znajdujących się na planszy.
+  Zarządza planszą, również listą słów oraz aktualnie wyłożonych znajdujących się na planszy.
 
 - <strong>LettersBag</strong> <br>
   Klasa zarządza woreczkiem z literami. Umożliwia wyjmowanie i wkładanie liter do niego, jak również losowy wybór płytki (symulujący rzeczywistość)
@@ -98,7 +98,7 @@ Gra kończy się, gdy jeden z graczy nie ma już żadnych płytek na stojaku. Op
   Klasa dziedziczy po wbudowanej klasie z modułu pygame (pygame.sprite.Sprite), która zarządza widocznymi obiektami gry. Posiada atrybuty: letter i position. Obsługuje płytki z literami.
 
 - <strong>Move</strong> <br>
-  Zarządza ruchem graczy, w tym: kliknięciami myszki, ułożeniem słów na planszy i ich poprawnością.
+  Zarządza klinięciami myszki.
 
 - <strong>Player</strong><br>
   Zarządza graczem. Odpowiedzialna za przechowywanie informacji o liście słów, stojaka na płytki oraz imienia konkretnego gracza. Co więcej, właśnie w niej obecna jest funkcja zwracająca ostateczny wynik danego gracza.
