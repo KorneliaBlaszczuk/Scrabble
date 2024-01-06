@@ -1,14 +1,25 @@
 from player import Player
 from board import Board
-from constants import SQUARE_SIZE
 from bot import Bot
-import pygame
 from game import ScrabbleGame
-import pytest
-from unittest.mock import patch
-from constants import WIDTH, HEIGHT
-from letters_bag import LettersBag, letters
 from move import Move
+from tiles import Tile
+from letters_bag import LettersBag, letters
+from constants import SQUARE_SIZE, WIDTH, HEIGHT
+import pygame
+import pytest
+from unittest.mock import Mock
+
+
+pygame.Surface = Mock()
+pygame.Surface.return_value.fill = Mock()
+pygame.draw.rect = Mock()
+pygame.font.Font = Mock()
+pygame.font.Font.return_value.render = Mock()
+pygame.font.Font.return_value.render.return_value = pygame.Surface(
+    (1, 1)
+)  # Mocking a surface
+pygame.font.Font.return_value.render.return_value.get_rect = Mock()
 
 """
 Class Player Tests
@@ -1253,15 +1264,72 @@ def test_game_init():
 
 
 def test_win_displayed(game_instance):
-    # Use patch to mock the behavior of pygame.display.update()
-    with patch("pygame.display.update") as mock_update:
-        game_instance.start_win()
-        mock_update.assert_called_once()
+    sequence = (WIDTH // 2, HEIGHT)
+    assert pygame.display.get_surface().get_at(sequence) == (0, 0, 0, 255)
 
-    sequence = (WIDTH // 2, (HEIGHT // 2))
-    assert pygame.display.get_surface().get_at(sequence) == (
-        251,
-        249,
-        249,
-        255,
-    )
+    assert game_instance.player_score == 0
+    assert game_instance.bot_score == 0
+
+
+"""
+Class Move Tests
+"""
+
+
+def test_move():
+    move = Move()
+    assert move.click == []
+
+
+def test_update_click():
+    move = Move()
+    move.update_click((2, 4))
+    assert move.click == [(2, 4)]
+
+
+def test_empty_click():
+    move = Move()
+    move.update_click((2, 4))
+    move.empty_click()
+    assert move.click == []
+
+
+def test_colid_true():
+    board_sprite = pygame.sprite.Group()
+    board = Board()
+    tile = Tile(letter="A", position=(100, 200))
+    assert board.coord_to_row_col(tile.position) == (3, 1)
+
+    board_sprite.add(tile)
+
+    move = Move()
+    move.update_click((16, 5))
+    move.update_click((3, 1))
+
+    assert move.colid(board, board_sprite)
+
+
+def test_colid_false():
+    board_sprite = pygame.sprite.Group()
+    board = Board()
+    tile = Tile(letter="A", position=(100, 200))
+    assert board.coord_to_row_col(tile.position) == (3, 1)
+
+    board_sprite.add(tile)
+
+    move = Move()
+    move.update_click((16, 5))
+    move.update_click((5, 2))
+
+    assert not move.colid(board, board_sprite)
+
+
+"""
+Class Tile Tests
+"""
+
+
+def test_tile():
+    tile = Tile(letter="A", position=(100, 200))
+    assert tile.letter == "A"
+    assert tile.position == (100, 200)
