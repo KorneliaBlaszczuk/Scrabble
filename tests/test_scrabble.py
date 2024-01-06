@@ -284,6 +284,28 @@ def test_coord_to_row_col():
     assert result == (2, 4)
 
 
+def test_valid_position_add_first():
+    board = Board()
+    board.current_word_update((6, 7), "A")
+    assert board.valid_position()
+
+
+def test_valid_position_one_line():
+    board = Board()
+    board.update_word_list("TA")
+    board.current_word_update((8, 7), "S")
+    board.current_word_update((9, 7), "W")
+    assert board.valid_position()
+
+
+def test_valid_no():
+    board = Board()
+    board.update_word_list("TA")
+    board.current_word_update((8, 6), "S")
+    board.current_word_update((9, 7), "W")
+    assert not board.valid_position()
+
+
 def test_addword():
     board = Board()
     board.create_board()
