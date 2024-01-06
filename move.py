@@ -2,7 +2,7 @@ class Move:
     """
     Class Move
 
-    Manages logic - valid positions
+    Manages logic of mouse clicks
 
     :param click: list of coordinates where player clicked
     :type click: list of tuples representing rows
@@ -17,7 +17,7 @@ class Move:
 
     def update_click(self, coord):
         """
-        Updates list of coordinates of the click
+        Updates list of coordinates (row/col) of the click
         """
         self.click.append(coord)
         return self.click
@@ -28,6 +28,20 @@ class Move:
         """
         self.click.clear()
         return self.click
+
+    def colid(self, board, board_sprite):
+        """
+        Checks if on the position there is not a tile
+        """
+        row = self.click[1][0]
+        col = self.click[1][1]
+        for letter in board_sprite:
+            letter_row, letter_col = board.coord_to_row_col(letter.position)
+            if letter_row == row and letter_col == col:
+                return True
+            else:
+                continue
+        return False
 
     def click_handling(self, player, board, board_sprite):
         """
@@ -40,47 +54,6 @@ class Move:
             or (count == 1 and (self.click[0][1] < 4))
             or (count == 1 and (player.rack[self.click[0][1] - 4] == ""))
             or (count == 2 and (self.click[1][0] > 14))
-            or (
-                count == 2
-                and (
-                    board.colid(
-                        board_sprite,
-                        self.click,
-                    )
-                )
-            )
+            or (count == 2 and (self.colid(board, board_sprite)))
         ):
             self.click.clear()
-
-    def valid_placement(self, board, board_sprite, player):
-        """
-        Manages validation of the placement. If it's correct nothing happens
-        in this function. The game goes on. In case of the opposite, we
-        execute not_valid_action.
-        """
-        if len(board.word_list) == 0 and not any(
-            key == (7, 7) for key in board.current_word.keys()
-        ):
-            board.not_valid_action(board_sprite, player)
-        elif (
-            len(board.word_list) != 0
-            and len(board.current_word.values()) == 1
-            and all(
-                board.not_touching(
-                    list(board.current_word.keys())[0][0],
-                    list(board.current_word.keys())[0][1],
-                )
-            )
-        ):
-            board.not_valid_action(board_sprite, player)
-        elif not board.valid_position():
-            board.not_valid_action(
-                board_sprite,
-                player,
-            )
-        else:
-            if not board.current_word and not board.valid_added_word():
-                board.not_valid_action(
-                    board_sprite,
-                    player,
-                )
