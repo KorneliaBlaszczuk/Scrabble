@@ -63,7 +63,7 @@ class Board:
         self.word_list.append(word)
         return self.word_list
 
-    def sort_current_word(self):
+    def valid_position(self):
         """
         Function that sorts current word
         """

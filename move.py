@@ -73,7 +73,7 @@ class Move:
             )
         ):
             board.not_valid_action(board_sprite, player)
-        elif not board.sort_current_word():
+        elif not board.valid_position():
             board.not_valid_action(
                 board_sprite,
                 player,
