@@ -7,14 +7,18 @@ from constants import (
     extra_space_x,
     extra_space_y,
     SQUARE_SIZE,
+    EXTRA_SQUARES,
     COLS,
     CENTRAL_COLOR,
+    CINEREOUS,
+    BEAVER,
     WHITE,
     DUN,
     rect_x,
     rect_y,
     rect_width,
     rect_height,
+    ROWS,
 )
 from tiles import Tile
 from player import Player
@@ -28,7 +32,7 @@ class ScrabbleGame:
     """
     Class ScrabbleGame
 
-    Manages game, including game windows and clicks
+    Manages game, including visual aspect of it
 
     :param WIN: game window
     :type WIN: pygame.Surface
@@ -148,6 +152,78 @@ class ScrabbleGame:
             self.letters_bag,
         )
         return self._player_score, self._bot_score
+
+    def draw_rack(self, rack, rack_sprite):
+        """
+        Draw tiles on the player's rack
+        """
+        x = extra_space_x
+        y = (COLS + 1) * SQUARE_SIZE
+        for current_letters in rack:
+            if current_letters == "":
+                x += SQUARE_SIZE
+            else:
+                letter_title = Tile(current_letters, (x, y))
+                rack_sprite.add(letter_title)
+                x += SQUARE_SIZE
+
+    def draw_tiles(self, board_sprite, current_letter, position):
+        """
+        Draw tile on the board
+        """
+        row, col = position
+        letter_tile = Tile(current_letter, self.board.row_col_to_coord(row, col))
+        board_sprite.add(letter_tile)
+
+    def draw_squares(self):
+        """
+        Manages a visual aspect of the board (draws it)
+        """
+        for row in range(ROWS):
+            """
+            Color depends on the row and column
+            """
+            for col in range(COLS):
+                color = (
+                    CENTRAL_COLOR
+                    if row == col == 7
+                    else (CINEREOUS if (row + col) % 2 == 0 else BEAVER)
+                )
+                pygame.draw.rect(
+                    self.WIN,
+                    color,
+                    (
+                        row * SQUARE_SIZE,
+                        col * SQUARE_SIZE,
+                        SQUARE_SIZE,
+                        SQUARE_SIZE,
+                    ),
+                )
+
+    def draw_rack_squares(self):
+        """
+        Draws a player's rack
+        """
+        for i in range(EXTRA_SQUARES):
+            x = SQUARE_SIZE * 4 + i * SQUARE_SIZE
+            y = (COLS + 1) * SQUARE_SIZE
+            color = CINEREOUS if i % 2 == 0 else BEAVER
+            pygame.draw.rect(self.WIN, color, (x, y, SQUARE_SIZE, SQUARE_SIZE))
+
+    def draw_updated_rack(self, rack_sprite):
+        x = extra_space_x
+        y = (COLS + 1) * SQUARE_SIZE
+
+        for current_letters in self.player.rack:
+            if current_letters == "":
+                x += SQUARE_SIZE
+            else:
+                letter = Tile(current_letters, (x, y))
+                rack_sprite.add(letter)
+                x += SQUARE_SIZE
+
+        x = extra_space_x
+        y = extra_space_y + EXTRA_SPACE // 2
 
     def start_win(self):
         """
@@ -295,7 +371,7 @@ class ScrabbleGame:
         board_sprite = pygame.sprite.Group()
         rack_sprite = pygame.sprite.Group()
 
-        # classes used in game
+        # To make the code shorter we used:
         player = self.player
         board = self.board
         bot = self.bot
@@ -305,7 +381,7 @@ class ScrabbleGame:
         board.create_board()
 
         player.updating_rack(letters_bag)
-        board.draw_rack(player.rack, rack_sprite)
+        self.draw_rack(player.rack, rack_sprite)
 
         bot.updating_rack(letters_bag)
 
@@ -338,6 +414,7 @@ class ScrabbleGame:
                             self.update_turn()
                             self.draw_info_box()
                             bot.bot_turn(
+                                self,
                                 board,
                                 board_sprite,
                                 words,
@@ -347,7 +424,7 @@ class ScrabbleGame:
                             self.update_turn()
                             self.draw_info_box()
 
-                            board.draw_rack(player.rack, rack_sprite)
+                            self.draw_rack(player.rack, rack_sprite)
                             self.update_round()
 
                 if event.type == pygame.KEYDOWN:
@@ -358,12 +435,12 @@ class ScrabbleGame:
 
                         self.update_turn()
                         self.draw_info_box()
-                        bot.bot_turn(board, board_sprite, words, letters_bag)
+                        bot.bot_turn(self, board, board_sprite, words, letters_bag)
                         bot.updating_rack(letters_bag)
                         self.update_turn()
                         self.draw_info_box()
 
-                        board.draw_rack(player.rack, rack_sprite)
+                        self.draw_rack(player.rack, rack_sprite)
                         self.update_round()
                         if self.skip_count == 2 or bot.empty_rack():
                             self.end()
@@ -407,23 +484,11 @@ class ScrabbleGame:
                         rack_sprite.empty()
                         board_sprite.add(letter_title)
 
-                        # Rack updating
+                        # Rack updating (display)
 
                         player.rack[rack_col - 4] = ""
 
-                        x = extra_space_x
-                        y = (COLS + 1) * SQUARE_SIZE
-
-                        for current_letters in player.rack:
-                            if current_letters == "":
-                                x += SQUARE_SIZE
-                            else:
-                                letter = Tile(current_letters, (x, y))
-                                rack_sprite.add(letter)
-                                x += SQUARE_SIZE
-
-                        x = extra_space_x
-                        y = extra_space_y + EXTRA_SPACE // 2
+                        self.draw_updated_rack(rack_sprite)
 
                         move.empty_click()
 
@@ -431,7 +496,7 @@ class ScrabbleGame:
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_RETURN and board.current_word:
                         # manages word placements
-                        move.valid_placement(board, board_sprite, player)
+                        board.valid_placement(board_sprite, player)
 
                         board.update_board()
                         board.validation(
@@ -442,18 +507,18 @@ class ScrabbleGame:
 
                         board.current_word_empty()
 
-                        self.win_update(board, rack_sprite, board_sprite)
+                        self.win_update(rack_sprite, board_sprite)
 
                         self.update_turn()
 
                         self.draw_info_box()
-                        bot.bot_turn(board, board_sprite, words, letters_bag)
+                        bot.bot_turn(self, board, board_sprite, words, letters_bag)
                         bot.updating_rack(letters_bag)
                         self.update_turn()
                         self.draw_info_box()
 
                         player.updating_rack(letters_bag)
-                        board.draw_rack(player.rack, rack_sprite)
+                        self.draw_rack(player.rack, rack_sprite)
 
                         self.update_round()
 
@@ -466,7 +531,7 @@ class ScrabbleGame:
                             continue
 
             self.draw_info_box()
-            self.win_update(board, rack_sprite, board_sprite)
+            self.win_update(rack_sprite, board_sprite)
             self.update_scores()
 
         return run
@@ -540,9 +605,9 @@ class ScrabbleGame:
         self.WIN.blit(text, text_rect)
         pygame.display.flip()
 
-    def win_update(self, board, rack_sprite, board_sprite):
-        board.draw_squares(self.WIN)
-        board.draw_rack_squares(self.WIN)
+    def win_update(self, rack_sprite, board_sprite):
+        self.draw_squares()
+        self.draw_rack_squares()
         rack_sprite.update()
         rack_sprite.draw(self.WIN)
         board_sprite.update()
