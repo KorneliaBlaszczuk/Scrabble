@@ -2,23 +2,17 @@ import pygame
 from constants import (
     ROWS,
     COLS,
-    CINEREOUS,
-    BEAVER,
-    CENTRAL_COLOR,
     SQUARE_SIZE,
-    EXTRA_SQUARES,
-    extra_space_x,
 )
 from letters_bag import blank_list
-from tiles import Tile
 
 
 class Board:
     """
     Class Board
 
-    Manages game board, letters bag and the visble side of the game.
-    It enables to draw board squares and a place for player's rack.
+    Manages game board, including: words made on board, current word and
+    2-dimensional board list.
 
     :param board: Game Board
     :type board: 2D list
@@ -48,6 +42,8 @@ class Board:
     def current_word(self):
         return self._current_word
 
+    """Word_list functions"""
+
     def empty_word_list(self):
         self.word_list.clear()
         return self.word_list
@@ -63,32 +59,7 @@ class Board:
         self.word_list.append(word)
         return self.word_list
 
-    def valid_position(self):
-        """
-        Function that sorts current word
-        """
-        row_key, col_key = zip(*self.current_word.keys())
-
-        if all(x == row_key[0] for x in row_key):
-            sorted_word = dict(
-                sorted(
-                    self.current_word.items(),
-                    key=lambda item: item[0][1],
-                )
-            )
-            self._current_word = sorted_word
-        elif all(y == col_key[0] for y in col_key):
-            sorted_word = dict(
-                sorted(
-                    self.current_word.items(),
-                    key=lambda item: item[0][0],
-                )
-            )
-            self._current_word = sorted_word
-        else:
-            return False
-
-        return self.current_word
+    """Current_word functions"""
 
     def current_word_update(self, coord, letter):
         """
@@ -103,6 +74,8 @@ class Board:
         """
         self.current_word.clear()
         return self.current_word
+
+    """Board list functions"""
 
     def create_board(self):
         """
@@ -133,62 +106,7 @@ class Board:
             self.board[row][col] = ""
         return self.board
 
-    def draw_rack(self, rack, rack_sprite):
-        """
-        Draw tiles on the player's rack
-        """
-        x = extra_space_x
-        y = (COLS + 1) * SQUARE_SIZE
-        for current_letters in rack:
-            if current_letters == "":
-                x += SQUARE_SIZE
-            else:
-                letter_title = Tile(current_letters, (x, y))
-                rack_sprite.add(letter_title)
-                x += SQUARE_SIZE
-
-    def draw_tiles(self, board_sprite, current_letter, position):
-        """
-        Draw tile on the board
-        """
-        row, col = position
-        letter_tile = Tile(current_letter, self.row_col_to_coord(row, col))
-        board_sprite.add(letter_tile)
-
-    def draw_squares(self, win):
-        """
-        Manages a visual aspect of the board (draws it)
-        """
-        for row in range(ROWS):
-            """
-            Color depends on the row and column
-            """
-            for col in range(COLS):
-                color = (
-                    CENTRAL_COLOR
-                    if row == col == 7
-                    else (CINEREOUS if (row + col) % 2 == 0 else BEAVER)
-                )
-                pygame.draw.rect(
-                    win,
-                    color,
-                    (
-                        row * SQUARE_SIZE,
-                        col * SQUARE_SIZE,
-                        SQUARE_SIZE,
-                        SQUARE_SIZE,
-                    ),
-                )
-
-    def draw_rack_squares(self, win):
-        """
-        Draws a player's rack
-        """
-        for i in range(EXTRA_SQUARES):
-            x = SQUARE_SIZE * 4 + i * SQUARE_SIZE
-            y = (COLS + 1) * SQUARE_SIZE
-            color = CINEREOUS if i % 2 == 0 else BEAVER
-            pygame.draw.rect(win, color, (x, y, SQUARE_SIZE, SQUARE_SIZE))
+    """Handling coordinates on board"""
 
     def row_col_to_coord(self, row, col):
         """
@@ -226,43 +144,6 @@ class Board:
                 in_group = False
 
         return count
-
-    def valid_added_word(self):
-        """
-        Checks if the placement of added word
-        is correct
-        """
-        row_key = [item[0] for item in self.current_word.keys()]
-        col_key = [item[1] for item in self.current_word.keys()]
-
-        space_coord = self.addword()
-        position = self.word_info_position()
-        coordinates = row_key if position == "vertical" else col_key
-        space_count = self.space_count(coordinates)
-        if space_count == 1:
-            if position == "vertical" and all(
-                self.board[row][space_coord[1]] != ""
-                for row in range(space_coord[0][0], space_coord[0][1])
-            ):
-                return True
-            elif position == "horizontal" and all(
-                self.board[space_coord[0]][col] != ""
-                for col in range(space_coord[1][0], space_coord[1][1])
-            ):
-                return True
-        elif space_count == 0 and not all(
-            self.not_touching(
-                row_key[0],
-                col_key[0],
-                position,
-                "".join(
-                    self.current_word.values(),
-                ),
-            )
-        ):
-            return True
-        else:
-            return False
 
     def addword(self):
         """
@@ -303,6 +184,72 @@ class Board:
             word_coord = [const, (start, end)]
         return word_coord
 
+    """Manages placement validation process"""
+
+    def valid_position(self):
+        """
+        Function that sorts current word
+        """
+        row_key, col_key = zip(*self.current_word.keys())
+
+        if all(x == row_key[0] for x in row_key):
+            sorted_word = dict(
+                sorted(
+                    self.current_word.items(),
+                    key=lambda item: item[0][1],
+                )
+            )
+            self._current_word = sorted_word
+        elif all(y == col_key[0] for y in col_key):
+            sorted_word = dict(
+                sorted(
+                    self.current_word.items(),
+                    key=lambda item: item[0][0],
+                )
+            )
+            self._current_word = sorted_word
+        else:
+            return False
+
+        return self.current_word
+
+    def valid_added_word(self):
+        """
+        Checks if the placement of added word
+        is correct
+        """
+        row_key = [item[0] for item in self.current_word.keys()]
+        col_key = [item[1] for item in self.current_word.keys()]
+
+        space_coord = self.addword()
+        position = self.word_info_position()
+        coordinates = row_key if position == "vertical" else col_key
+        space_count = self.space_count(coordinates)
+        if space_count == 1:
+            if position == "vertical" and all(
+                self.board[row][space_coord[1]] != ""
+                for row in range(space_coord[0][0], space_coord[0][1])
+            ):
+                return True
+            elif position == "horizontal" and all(
+                self.board[space_coord[0]][col] != ""
+                for col in range(space_coord[1][0], space_coord[1][1])
+            ):
+                return True
+        elif space_count == 0 and not all(
+            self.not_touching(
+                row_key[0],
+                col_key[0],
+                position,
+                "".join(
+                    self.current_word.values(),
+                ),
+            )
+        ):
+            return True
+        else:
+            return False
+
     def not_valid_action(self, board_sprite, player):
         """
         Action called in a situation when the wrong move was made by player
@@ -324,9 +271,9 @@ class Board:
         col_start,
         position="horizontal",
         word=" ",
-    ):
+    ) -> list:
         """
-        Checks if the word is alone
+        Checks if the word is touching another by its border.
         """
         valid_condition = []
         if position == "horizontal":
@@ -389,19 +336,48 @@ class Board:
                     valid_condition.append(False)
         return valid_condition
 
-    def colid(self, board_sprite, current_next_pos):
+    def valid_placement(self, board_sprite, player):
         """
-        Checks if on the position there is not a tile
+        Manages validation of the placement. If it's correct nothing happens
+        in this function. The game goes on. In case of the opposite, we
+        execute not_valid_action.
         """
-        row = current_next_pos[1][0]
-        col = current_next_pos[1][1]
-        for letter in board_sprite:
-            letter_row, letter_col = self.coord_to_row_col(letter.position)
-            if letter_row == row and letter_col == col:
-                return True
-            else:
-                continue
-        return False
+        if len(self.word_list) == 0 and not any(
+            key == (7, 7) for key in self.current_word.keys()
+        ):
+            self.not_valid_action(board_sprite, player)
+        elif (
+            len(self.word_list) != 0
+            and len(self.current_word.values()) == 1
+            and all(
+                self.not_touching(
+                    list(self.current_word.keys())[0][0],
+                    list(self.current_word.keys())[0][1],
+                )
+            )
+        ):
+            self.not_valid_action(board_sprite, player)
+        elif not self.valid_position():
+            self.not_valid_action(
+                board_sprite,
+                player,
+            )
+        else:
+            if not self.current_word and not self.valid_added_word():
+                self.not_valid_action(
+                    board_sprite,
+                    player,
+                )
+
+    def validation(self, board_sprite, valid, player):
+        """
+        Manages all the validation proces of word made by player
+        """
+        if self.word_checking(valid):
+            self.word_lists_adding(player)
+        else:
+            self.not_valid_action(board_sprite, player)
+            self.remove_from_board()
 
     def check_row(self):
         """
@@ -454,9 +430,12 @@ class Board:
         return words
 
     def letter_in_board(self):
+        """Returns list of letters on the board"""
         all_found = self.check_row() + self.check_col()
         letters = [word for word in (all_found) if len(word) == 1]
         return letters
+
+    """Word authentication functions"""
 
     def word_authentication(self, word, valid):
         """
@@ -526,18 +505,9 @@ class Board:
                     word_amount += 1
         return self.word_list
 
-    def validation(self, board_sprite, valid, player):
-        """
-        Manages all the validation proces of word made by player
-        """
-        if self.word_checking(valid):
-            self.word_lists_adding(player)
-        else:
-            self.not_valid_action(board_sprite, player)
-            self.remove_from_board()
+    """Functions that gives us info about words"""
 
     def word_info_position(self):
-        # after we sort current word
         row_key = [item[0] for item in self.current_word.keys()]
         position = "horizontal" if all(x == row_key[0] for x in row_key) else "vertical"
         return position
