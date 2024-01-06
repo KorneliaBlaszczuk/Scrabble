@@ -21,6 +21,9 @@ class Bot(Player):
         super().__init__(name, words, rack)
 
     def blank_on_rack_handling(self, word, old=""):
+        """
+        Function manages using blanks tiles on rack when adding
+        """
         not_in_rack = {}
         word = word.upper()
         old = old.upper()
@@ -56,6 +59,9 @@ class Bot(Player):
         return []
 
     def blank_find(self, word, valid_words):
+        """
+        Tries to find a matching choice for word with blank
+        """
         letter_list = list(word)
         blank_indices = [i for i, letter in enumerate(word) if letter == " "]
 
@@ -69,7 +75,6 @@ class Bot(Player):
                     find = self.find_matching_choice(check_word, valid_words)
                     if find:
                         return find, word, check_word
-            # If no valid word is found, return False
             return ""
         else:
             # If there is one blank, iterate through all possible replacements
@@ -80,8 +85,6 @@ class Bot(Player):
                     find = self.find_matching_choice(check_word, valid_words)
                     if find:
                         return find, word, check_word
-
-            # If no valid word is found, return False
             return ""
 
     def valid_first_word(self, valid_words):
@@ -140,9 +143,6 @@ class Bot(Player):
         """
         Manages adding letters to already existing ones on board
         """
-        """
-        Obsługa blank
-        """
         if not word_list:
             return "", ""
 
@@ -196,7 +196,10 @@ class Bot(Player):
         new_letters = {}
         original_word = original_word.upper()
         modified_word = modified_word.upper()
-        position = re.search(original_word.upper(), modified_word.upper()).span()
+        try:
+            position = re.search(original_word, modified_word).span()
+        except AttributeError:
+            return {}
         for e, letter in enumerate(modified_word):
             if e < position[0]:
                 new_letters[e, base_word_pres] = letter
@@ -208,6 +211,9 @@ class Bot(Player):
         return new_letters
 
     def make_prefix_and_suffix(self, added: dict):
+        """
+        Makes prefix and suffix lists
+        """
         prefix = []
         suffix = []
         for ind, original_pres in added:
@@ -228,22 +234,26 @@ class Bot(Player):
         return sum(not term for term in valid_pos_pr) == 1
 
     def word_blank(self, blank_find):
-        prefix = []
-        suffix = []
         if blank_find == "":
             return ""
         new, with_blank, without_blank = blank_find
         letters = [letter for letter in new]
         added = self.added_letters(without_blank, new)
+        if added:
+            prefix, suffix = self.make_prefix_and_suffix(added)
 
-        prefix, suffix = self.make_prefix_and_suffix(added)
-
-        for e, letter in enumerate(with_blank):
-            if letter == " ":
-                letters[e + len(prefix)] = " "
-        return "".join(letters)
+            for e, letter in enumerate(with_blank):
+                if letter == " ":
+                    letters[e + len(prefix)] = " "
+            return "".join(letters)
+        return ""
 
     def made_word_info(self, board, result, choice, added_let, position):
+        """
+        Returns dictionary with info about prefix, suffix, old word, new word
+        and mode (if it's first on board, new (added to one letter) or added (
+        added to word))
+        """
         new_word = {}
 
         old_word, upd_word = result[0], result[1]
@@ -271,8 +281,7 @@ class Bot(Player):
             elif prefix and not self.valid_add_pos(
                 board, row_start, col_start_pr, position, prefix
             ):
-                new_word = {}
-                return new_word
+                return {}
             elif not prefix:
                 new_word["prefix"] = []
 
@@ -288,8 +297,7 @@ class Bot(Player):
             elif suffix and not self.valid_add_pos(
                 board, row_start, col_start_suf, position, suffix
             ):
-                new_word = {}
-                return new_word
+                return {}
             elif not suffix:
                 new_word["suffix"] = []
 
@@ -312,8 +320,7 @@ class Bot(Player):
             elif prefix and not self.valid_add_pos(
                 board, row_start_pr, col_start, position, prefix
             ):
-                new_word = {}
-                return new_word
+                return {}
             elif not prefix:
                 new_word["prefix"] = []
 
@@ -329,14 +336,12 @@ class Bot(Player):
             elif suffix and not self.valid_add_pos(
                 board, row_start_suf, col_start, position, suffix
             ):
-                new_word = {}
-                return new_word
+                return {}
             elif not suffix:
                 new_word["suffix"] = []
 
         else:
-            new_word = {}
-            return new_word
+            return {}
 
         new_word["old_word"] = old_word.upper()
         new_word["new_word"] = upd_word.upper()
@@ -351,7 +356,7 @@ class Bot(Player):
             if choice == "added"
             else self.new_word(board, valid_words)[0]
         )
-        position = ""
+        pos = ""
         old_word, upd_word = result[0], result[1]
         old_word.upper()
         upd_word.upper()
@@ -359,11 +364,20 @@ class Bot(Player):
         if added:
             if board.exist(result[0]) is not False and len(old_word) == 1:
                 old_info = board.exist(self.new_word(board, valid_words)[1])
-                position = "horizontal" if old_info[0] == "vertical" else "vertical"
+                if old_info:
+                    pos = "horizontal" if old_info[0] == "vertical" else "vertical"
+                else:
+                    return {}
             elif board.exist(result[0]) is not False and len(old_word) != 1:
-                position = board.exist(result[0])[0]
+                pos = board.exist(result[0])[0]
 
-            new_word = self.made_word_info(board, result, choice, added, position)
+            new_word = self.made_word_info(
+                board,
+                result,
+                choice,
+                added,
+                pos,
+            )
 
         return new_word
 
@@ -374,7 +388,16 @@ class Bot(Player):
         """
         new_word = {}
 
-        choice = "new" if len(board.word_list) == 0 else random.choice(["new", "added"])
+        choice = (
+            "new"
+            if len(board.word_list) == 0
+            else random.choice(
+                [
+                    "new",
+                    "added",
+                ]
+            )
+        )
 
         if choice == "new" and len(board.word_list) == 0:
             result = self.new_word(board, valid_words)
@@ -405,6 +428,10 @@ class Bot(Player):
         return current_word
 
     def valid_new(self, board, choice):
+        """
+        Checks if the new word's position choosen by
+        bot is valid
+        """
         old_word = choice["old_word"]
         new_word = choice["new_word"]
         if len(old_word) != 1:
@@ -451,7 +478,8 @@ class Bot(Player):
 
     def made_word(self, board, bot_choice, letters_bag):
         """
-        Updates board, word_lists
+        Updates board, word_lists.
+        When bot cannot make the word, the rack is replaced.
         """
         current_word = {}
         if bot_choice["mode"] == "first":
@@ -460,7 +488,8 @@ class Bot(Player):
             board.update_word_list(bot_choice["info"][3])
             self.update_words(bot_choice["info"][3])
         else:
-            added_prefix, added_suffix = bot_choice["prefix"], bot_choice["suffix"]
+            added_prefix = bot_choice["prefix"]
+            added_suffix = bot_choice["suffix"]
             if added_prefix:
                 current_pref = self.made_current_word(added_prefix)
                 current_word.update(current_pref)
@@ -482,28 +511,40 @@ class Bot(Player):
         return current_word
 
     def attempts(self, board, valid_words, letters_bag):
+        """
+        Tries to make a valid word five times after not doing anything
+        for one second (to simulate real player).
+        """
         tries = 5
         bot_choice = {}
         time.sleep(1)
         while tries > 0:
             bot_choice = self.word_finding(board, valid_words)
             if bot_choice:
-                board._current_word = self.made_word(board, bot_choice, letters_bag)
+                board._current_word = self.made_word(
+                    board,
+                    bot_choice,
+                    letters_bag,
+                )
                 return board.current_word
             else:
                 tries -= 1
         self.replace_rack(letters_bag)
         return board.current_word
 
-    def bot_turn(self, board, board_sprite, valid_words, letters_bag):
+    def bot_turn(self, game, board, board_sprite, valid_words, letters_bag):
         """
         Manages whole bot turn
         """
         board._current_word = self.attempts(board, valid_words, letters_bag)
         for pos in board.current_word:
-            board.draw_tiles(board_sprite, board.current_word[pos], pos)
+            game.draw_tiles(board_sprite, board.current_word[pos], pos)
             letter_hand = self.rack.index(board.current_word[pos])
             self.rack[letter_hand] = ""
         board.update_board()
-        print(board.word_list)
+        board.validation(
+            board_sprite,
+            valid_words,
+            self,
+        )
         board.current_word_empty()

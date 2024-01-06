@@ -603,6 +603,7 @@ def test_word_authentication_two_blank_only():
 
 def test_word_checking_true():
     board = Board()
+    player = Player()
     board.create_board()
     board._current_word = {
         (1, 1): "T",
@@ -616,11 +617,12 @@ def test_word_checking_true():
     with open("slowa.txt", "r", encoding="utf-8") as file:
         content = file.read()
         words = content.split()
-    assert board.word_checking(words)
+    assert board.word_checking(words, player)
 
 
 def test_word_checking_cross():
     board = Board()
+    player = Player()
     board.create_board()
     board._current_word = {(2, 4): "W", (2, 5): "I", (2, 6): "I"}
     board.update_board()
@@ -629,11 +631,12 @@ def test_word_checking_cross():
     with open("slowa.txt", "r", encoding="utf-8") as file:
         content = file.read()
         words = content.split()
-    assert board.word_checking(words)
+    assert board.word_checking(words, player)
 
 
 def test_word_checking_false():
     board = Board()
+    player = Player()
     board.create_board()
     board._current_word = {
         (1, 1): "T",
@@ -647,7 +650,7 @@ def test_word_checking_false():
     with open("slowa.txt", "r", encoding="utf-8") as file:
         content = file.read()
         words = content.split()
-    assert not board.word_checking(words)
+    assert not board.word_checking(words, player)
 
 
 def test_word_list_add():
