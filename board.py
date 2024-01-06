@@ -257,12 +257,13 @@ class Board:
         for tile in board_sprite:
             for pos in self.current_word:
                 letter_x, letter_y = self.row_col_to_coord(pos[0], pos[1])
-                if (tile.letter() == self.current_word[pos]) and (
-                    tile.position() == (letter_x, letter_y)
+                if (tile.letter == self.current_word[pos]) and (
+                    tile.position == (letter_x, letter_y)
                 ):
                     board_sprite.remove(tile)
                     pygame.display.flip()
                 player.reinstate_rack(self.current_word[pos])
+
         self.current_word_empty()
 
     def not_touching(
@@ -373,7 +374,7 @@ class Board:
         """
         Manages all the validation proces of word made by player
         """
-        if self.word_checking(valid):
+        if self.word_checking(valid, player):
             self.word_lists_adding(player)
         else:
             self.not_valid_action(board_sprite, player)
@@ -473,35 +474,43 @@ class Board:
             else:
                 return False
 
-    def word_checking(self, valid):
+    def word_checking(self, valid, player):
         """
         Checks if all the words on the board are valid
         """
+        if not self.word_in_board():
+            return False
+        copied = self.word_list.copy()
         self.empty_word_list()
         for word in self.word_in_board():
             if self.word_authentication(word, valid):
                 self.update_word_list(word)
                 continue
             else:
+                self.empty_word_list()
+                self._word_list = copied
                 return False
+        new_words = [word for word in self._word_list if word not in copied]
+        for new in new_words:
+            player.update_words(new)
         return True
 
-    def word_lists_adding(self, player):
+    def word_lists_adding(self, current_player):
         """
         Adds the word to the personal word list of certain player
         """
         for word in self.word_in_board():
             count = self.word_in_board().count(word)
             word_amount = self.word_list.count(word)
-            if count == 1 and word in self.word_list:
+            if count == 1 and word_amount == count and word in self.word_list:
                 continue
             elif count == 1 and word not in self.word_list:
                 self.update_word_list(word)
-                player.update_words(word)
+                current_player.update_words(word)
             else:
                 while count != word_amount:
                     self.update_word_list(word)
-                    player.update_words(word)
+                    current_player.update_words(word)
                     word_amount += 1
         return self.word_list
 
@@ -509,7 +518,7 @@ class Board:
 
     def word_info_position(self):
         row_key = [item[0] for item in self.current_word.keys()]
-        position = "horizontal" if all(x == row_key[0] for x in row_key) else "vertical"
+        position = "horizontal" if len(set(row_key)) == 1 else "vertical"
         return position
 
     def exist(self, word):

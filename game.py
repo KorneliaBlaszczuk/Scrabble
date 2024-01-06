@@ -153,6 +153,8 @@ class ScrabbleGame:
         )
         return self._player_score, self._bot_score
 
+    """Drawing board elements"""
+
     def draw_rack(self, rack, rack_sprite):
         """
         Draw tiles on the player's rack
@@ -172,7 +174,10 @@ class ScrabbleGame:
         Draw tile on the board
         """
         row, col = position
-        letter_tile = Tile(current_letter, self.board.row_col_to_coord(row, col))
+        letter_tile = Tile(
+            current_letter,
+            self.board.row_col_to_coord(row, col),
+        )
         board_sprite.add(letter_tile)
 
     def draw_squares(self):
@@ -224,6 +229,8 @@ class ScrabbleGame:
 
         x = extra_space_x
         y = extra_space_y + EXTRA_SPACE // 2
+
+    """Game windows"""
 
     def start_win(self):
         """
@@ -371,7 +378,7 @@ class ScrabbleGame:
         board_sprite = pygame.sprite.Group()
         rack_sprite = pygame.sprite.Group()
 
-        # To make the code shorter we used:
+        # To make the code shorter we use:
         player = self.player
         board = self.board
         bot = self.bot
@@ -411,6 +418,7 @@ class ScrabbleGame:
                             rack_sprite.empty()
                             player.replace_rack(letters_bag)
 
+                            # Bot turn
                             self.update_turn()
                             self.draw_info_box()
                             bot.bot_turn(
@@ -433,9 +441,16 @@ class ScrabbleGame:
                         self.update_skip_count()
                         board.not_valid_action(board_sprite, player)
 
+                        # Bot turn
                         self.update_turn()
                         self.draw_info_box()
-                        bot.bot_turn(self, board, board_sprite, words, letters_bag)
+                        bot.bot_turn(
+                            self,
+                            board,
+                            board_sprite,
+                            words,
+                            letters_bag,
+                        )
                         bot.updating_rack(letters_bag)
                         self.update_turn()
                         self.draw_info_box()
@@ -511,8 +526,15 @@ class ScrabbleGame:
 
                         self.update_turn()
 
+                        # Bot turn
                         self.draw_info_box()
-                        bot.bot_turn(self, board, board_sprite, words, letters_bag)
+                        bot.bot_turn(
+                            self,
+                            board,
+                            board_sprite,
+                            words,
+                            letters_bag,
+                        )
                         bot.updating_rack(letters_bag)
                         self.update_turn()
                         self.draw_info_box()
@@ -545,7 +567,10 @@ class ScrabbleGame:
 
         font = pygame.font.Font(None, 36)
 
-        winner_name = self.player.name if self.player_score > self.bot_score else "Bot"
+        if self.player_score > self.bot_score:
+            winner = self.player.name
+        else:
+            winner = "Bot"
 
         text_info = [
             {
@@ -564,7 +589,7 @@ class ScrabbleGame:
                 "coord": (WIDTH // 2, (HEIGHT // 2) + 3 * EXTRA_SPACE),
             },
             {
-                "text": f"{winner_name} won",
+                "text": f"{winner} won",
                 "font": SQUARE_SIZE,
                 "coord": (WIDTH // 2, (HEIGHT // 2) + 4 * EXTRA_SPACE),
             },
